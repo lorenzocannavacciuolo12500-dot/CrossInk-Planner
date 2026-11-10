@@ -4,6 +4,7 @@
 #include <HalClock.h>
 #include <HalStorage.h>
 #include <Logging.h>
+#include <PlannerHash.h>
 #include <PlannerJson.h>
 
 #include <atomic>
@@ -164,6 +165,16 @@ bool saveTodos(const planner::TodoList& list) {
   });
 }
 
+namespace {
+// Events fingerprint of calendar.json as last read or written; 0 = unknown.
+std::atomic<uint32_t> gCalendarHash{0};
+
+uint32_t knownHash(const planner::Calendar& calendar) {
+  const uint32_t h = planner::calendarEventsHash(calendar);
+  return h == 0 ? 1 : h;  // keep 0 for "unknown"
+}
+}  // namespace
+
 bool loadCalendar(planner::Calendar& out) {
   int result;
   {
@@ -171,12 +182,20 @@ bool loadCalendar(planner::Calendar& out) {
     result = readInto(kCalendarPath, decoder);
   }
   if (result < 0) out = planner::Calendar{};
+  gCalendarHash.store(result >= 0 ? knownHash(out) : 0, std::memory_order_relaxed);
   return result >= 0;
 }
 
 bool saveCalendar(const planner::Calendar& calendar) {
-  return writeAtomically(kCalendarPath,
-                         [&calendar](const planner::JsonSink& sink) { planner::writeCalendarJson(calendar, sink); });
+  const bool ok = writeAtomically(
+      kCalendarPath, [&calendar](const planner::JsonSink& sink) { planner::writeCalendarJson(calendar, sink); });
+  gCalendarHash.store(ok ? knownHash(calendar) : 0, std::memory_order_relaxed);
+  return ok;
+}
+
+bool calendarUnchanged(const planner::Calendar& calendar) {
+  const uint32_t last = gCalendarHash.load(std::memory_order_relaxed);
+  return last != 0 && last == knownHash(calendar);
 }
 
 int64_t nowForEdits() {

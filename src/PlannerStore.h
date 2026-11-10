@@ -32,6 +32,9 @@ bool saveTodos(const planner::TodoList& list);
 // A missing file yields an empty calendar and returns true.
 bool loadCalendar(planner::Calendar& out);
 bool saveCalendar(const planner::Calendar& calendar);
+// True when `calendar` has the same events as the last one loaded or saved
+// since boot (false when unknown).
+bool calendarUnchanged(const planner::Calendar& calendar);
 
 // UTC unix time for stamping edits, or 0 when the device clock is not trusted.
 int64_t nowForEdits();

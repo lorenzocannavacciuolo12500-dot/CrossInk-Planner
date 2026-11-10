@@ -1,6 +1,7 @@
 // Native tests for lib/Planner (to-do merge, JSON codec, date math).
 // Plain asserts so the suite also builds without GoogleTest.
 #include <PlannerDate.h>
+#include <PlannerHash.h>
 #include <PlannerJson.h>
 #include <PlannerTodos.h>
 
@@ -281,6 +282,34 @@ void testCalendarLimit() {
   CHECK(decoder.finish());
   CHECK(cal.events.size() == kMaxEvents && decoder.skippedItems() == 5);
 }
+void testHashes() {
+  TodoList a;
+  a.items.push_back(TodoItem{});
+  a.items[0].id = "x";
+  a.items[0].title = "Milk";
+  TodoList b = a;
+  b.items[0].localRev = 9;  // bookkeeping only
+  b.items[0].updatedAt = 42;
+  CHECK(visibleTodosHash(a) == visibleTodosHash(b));
+  b.items[0].done = true;
+  CHECK(visibleTodosHash(a) != visibleTodosHash(b));
+  TodoList c = a;
+  c.items.push_back(TodoItem{});
+  c.items[1].id = "gone";
+  c.items[1].deleted = true;  // tombstones are not visible
+  CHECK(visibleTodosHash(a) == visibleTodosHash(c));
+
+  Calendar x;
+  x.events.push_back(CalendarEvent{});
+  x.events[0].title = "ab";
+  x.events[0].location = "c";
+  Calendar y = x;
+  y.generatedAt = 123;  // snapshot time is not content
+  CHECK(calendarEventsHash(x) == calendarEventsHash(y));
+  y.events[0].title = "a";
+  y.events[0].location = "bc";
+  CHECK(calendarEventsHash(x) != calendarEventsHash(y));
+}
 }  // namespace
 
 int main() {
@@ -298,6 +327,7 @@ int main() {
   testMalformedJson();
   testCalendarRoundTrip();
   testCalendarLimit();
+  testHashes();
   std::printf("planner tests: %d checks passed\n", checks);
   return 0;
 }

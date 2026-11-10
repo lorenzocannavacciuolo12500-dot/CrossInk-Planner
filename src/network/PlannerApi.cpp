@@ -3,6 +3,7 @@
 #include <HalClock.h>
 #include <HalStorage.h>
 #include <Logging.h>
+#include <PlannerHash.h>
 #include <PlannerJson.h>
 #include <PlannerTodos.h>
 #include <StreamingJsonParser.h>
@@ -170,6 +171,8 @@ void handleSetTime(WebServer& server) {
     server.send(400, "text/plain", "Expected {\"utc\":<seconds>,\"utcOffsetMin\":<minutes>}");
     return;
   }
+  time_t before = 0;
+  const bool hadTime = halClock.getUnixTime(before);
   if (!halClock.setFromUnixTime(static_cast<time_t>(time.utc))) {
     server.send(400, "text/plain", "Implausible time");
     return;
@@ -193,7 +196,11 @@ void handleSetTime(WebServer& server) {
   }
   if (settingsChanged && !SETTINGS.saveToFile()) LOG_ERR("PLN", "Could not save clock settings");
 
-  PlannerStore::noteExternalChange();  // "today" may have moved
+  // A real clock correction (or a new time zone) may move "today" on screen;
+  // the routine re-sync of every companion run does not.
+  constexpr int64_t kClockJumpSeconds = 120;
+  const int64_t jump = hadTime ? static_cast<int64_t>(time.utc) - static_cast<int64_t>(before) : kClockJumpSeconds;
+  if (settingsChanged || jump >= kClockJumpSeconds || jump <= -kClockJumpSeconds) PlannerStore::noteExternalChange();
   LOG_INF("PLN", "Clock set by companion (offset %d min)", offsetMinutesFromSettings());
   server.send(200, "application/json", "{\"ok\":true}");
 }
@@ -226,9 +233,11 @@ void handlePostTodos(WebServer& server) {
   }
 
   planner::TodoList todos;
+  uint32_t visibleBefore = 0;
   {
     std::lock_guard<std::mutex> guard(PlannerStore::lock());
     PlannerStore::loadTodos(todos);
+    visibleBefore = planner::visibleTodosHash(todos);
     const bool baselineValid = push.hasBaseline && push.storeId == todos.storeId;
     if (!baselineValid) LOG_INF("PLN", "Companion cursor not valid for this store; merging without it");
     planner::applyCompanionTodos(todos, std::move(push.items), push.baseline, baselineValid);
@@ -237,7 +246,7 @@ void handlePostTodos(WebServer& server) {
       return;
     }
   }
-  PlannerStore::noteExternalChange();
+  if (planner::visibleTodosHash(todos) != visibleBefore) PlannerStore::noteExternalChange();
   LOG_INF("PLN", "Synced %u tasks (revision %u)", static_cast<unsigned>(todos.items.size()),
           static_cast<unsigned>(todos.revision));
   sendTodos(server, todos);
@@ -259,14 +268,16 @@ void handlePostCalendar(WebServer& server) {
     }
     skipped = decoder.skippedItems();
   }
+  bool unchanged;
   {
     std::lock_guard<std::mutex> guard(PlannerStore::lock());
+    unchanged = PlannerStore::calendarUnchanged(calendar);
     if (!PlannerStore::saveCalendar(calendar)) {
       server.send(500, "text/plain", "Could not save calendar");
       return;
     }
   }
-  PlannerStore::noteExternalChange();
+  if (!unchanged) PlannerStore::noteExternalChange();
   LOG_INF("PLN", "Stored %u calendar events (%u skipped)", static_cast<unsigned>(calendar.events.size()),
           static_cast<unsigned>(skipped));
   char json[64];

@@ -1,6 +1,7 @@
 add_executable(planner_tests
   PlannerTest.cpp
   ${REPO_ROOT}/lib/Planner/PlannerDate.cpp
+  ${REPO_ROOT}/lib/Planner/PlannerHash.cpp
   ${REPO_ROOT}/lib/Planner/PlannerJson.cpp
   ${REPO_ROOT}/lib/Planner/PlannerTodos.cpp
   ${REPO_ROOT}/lib/JsonParser/StreamingJsonParser.cpp
