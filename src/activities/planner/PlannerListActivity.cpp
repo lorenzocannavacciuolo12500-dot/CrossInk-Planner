@@ -16,7 +16,9 @@ constexpr fui::ActionId ACTION_ROW = 1;
 }
 
 PlannerListActivity::PlannerListActivity(const char* name, GfxRenderer& renderer, MappedInputManager& mappedInput)
-    : Activity(name, renderer, mappedInput), uiTarget(makeUiTarget(renderer)), app(uiTarget, uiTarget.deviceContext()) {}
+    : Activity(name, renderer, mappedInput),
+      uiTarget(makeUiTarget(renderer)),
+      app(uiTarget, uiTarget.deviceContext()) {}
 
 const char* PlannerListActivity::confirmHint() const { return tr(STR_SELECT); }
 
@@ -48,8 +50,8 @@ void PlannerListActivity::loop() {
 
   const int count = itemCount();
 
-  if (supportsLongPress() && count > 0 && !holdHandled &&
-      mappedInput.isPressed(MappedInputManager::Button::Confirm) && mappedInput.getHeldTime() >= kHoldMs) {
+  if (supportsLongPress() && count > 0 && !holdHandled && mappedInput.isPressed(MappedInputManager::Button::Confirm) &&
+      mappedInput.getHeldTime() >= kHoldMs) {
     holdHandled = true;
     activate(selectedIndex, true);
     return;
@@ -76,8 +78,8 @@ void PlannerListActivity::loop() {
 
   const auto swipe = mappedInput.wasSwipe();
   if (swipe == MappedInputManager::SwipeDir::Up || swipe == MappedInputManager::SwipeDir::Down) {
-    const int next =
-        scrollListBy(topIndex, swipe == MappedInputManager::SwipeDir::Up ? visibleRows : -visibleRows, visibleRows, count);
+    const int next = scrollListBy(topIndex, swipe == MappedInputManager::SwipeDir::Up ? visibleRows : -visibleRows,
+                                  visibleRows, count);
     if (next != topIndex) {
       topIndex = next;
       requestUpdate();

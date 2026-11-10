@@ -8,6 +8,7 @@
 #include <StreamingJsonParser.h>
 #include <WebServer.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -143,10 +144,8 @@ void handleStatus(WebServer& server) {
     loadTodosPersistingStoreId(todos);
     PlannerStore::loadCalendar(calendar);
   }
-  size_t todoCount = 0;
-  for (const auto& item : todos.items) {
-    if (!item.deleted) todoCount++;
-  }
+  const auto todoCount = static_cast<size_t>(std::count_if(
+      todos.items.begin(), todos.items.end(), [](const planner::TodoItem& item) { return !item.deleted; }));
   time_t now = 0;
   const bool clockValid = halClock.getUnixTime(now);
 
@@ -268,8 +267,8 @@ void handlePostCalendar(WebServer& server) {
   LOG_INF("PLN", "Stored %u calendar events (%u skipped)", static_cast<unsigned>(calendar.events.size()),
           static_cast<unsigned>(skipped));
   char json[64];
-  std::snprintf(json, sizeof(json), "{\"eventCount\":%u,\"skipped\":%u}",
-                static_cast<unsigned>(calendar.events.size()), static_cast<unsigned>(skipped));
+  std::snprintf(json, sizeof(json), "{\"eventCount\":%u,\"skipped\":%u}", static_cast<unsigned>(calendar.events.size()),
+                static_cast<unsigned>(skipped));
   server.send(200, "application/json", json);
 }
 

@@ -13,13 +13,13 @@ using namespace planner;
 
 namespace {
 int checks = 0;
-#define CHECK(cond)                                                       \
-  do {                                                                    \
-    checks++;                                                             \
-    if (!(cond)) {                                                        \
+#define CHECK(cond)                                                                 \
+  do {                                                                              \
+    checks++;                                                                       \
+    if (!(cond)) {                                                                  \
       std::fprintf(stderr, "%s:%d: CHECK failed: %s\n", __FILE__, __LINE__, #cond); \
-      std::abort();                                                       \
-    }                                                                     \
+      std::abort();                                                                 \
+    }                                                                               \
   } while (0)
 
 void appendSink(void* ctx, const char* data, size_t len) { static_cast<std::string*>(ctx)->append(data, len); }

@@ -61,7 +61,7 @@ int readInto(const char* path, planner::PlannerJsonDecoder& decoder) {
 struct FileSink {
   explicit FileSink(HalFile* f) : file(f) {}
   HalFile* file;
-  char buf[kIoChunk];
+  char buf[kIoChunk] = {};
   size_t used = 0;
   bool failed = false;
 
@@ -174,9 +174,8 @@ bool loadCalendar(planner::Calendar& out) {
 }
 
 bool saveCalendar(const planner::Calendar& calendar) {
-  return writeAtomically(kCalendarPath, [&calendar](const planner::JsonSink& sink) {
-    planner::writeCalendarJson(calendar, sink);
-  });
+  return writeAtomically(kCalendarPath,
+                         [&calendar](const planner::JsonSink& sink) { planner::writeCalendarJson(calendar, sink); });
 }
 
 int64_t nowForEdits() {

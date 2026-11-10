@@ -384,8 +384,8 @@ void PlannerJsonDecoder::onBool(const bool value) {
 
 void PlannerJsonDecoder::onNull() {}
 
-void PlannerJsonDecoder::handleTopScalar(const char* str, const size_t len, const int64_t num, const bool isNum,
-                                         bool, bool) {
+void PlannerJsonDecoder::handleTopScalar(const char* str, const size_t len, const int64_t num, const bool isNum, bool,
+                                         bool) {
   switch (kind) {
     case Kind::TodoFile:
       if (keyIs(key, "storeId") && str) {

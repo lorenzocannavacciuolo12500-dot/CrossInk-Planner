@@ -63,8 +63,7 @@ bool sanitizeTodo(TodoItem& item) {
   return !item.id.empty() && !item.title.empty();
 }
 
-bool addLocalTodo(TodoList& list, std::string title, const int32_t due, const int64_t now,
-                  const uint32_t randomValue) {
+bool addLocalTodo(TodoList& list, std::string title, const int32_t due, const int64_t now, const uint32_t randomValue) {
   TodoItem item;
   item.title = std::move(title);
   item.due = due;
