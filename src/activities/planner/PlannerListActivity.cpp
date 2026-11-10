@@ -124,8 +124,8 @@ void PlannerListActivity::loop() {
                                                             MappedInputManager::Button::Right};
   constexpr std::array<MappedInputManager::Button, 2> kPrevious{MappedInputManager::Button::Left,
                                                                 MappedInputManager::Button::Left};
-  buttonNavigator.onRelease(kNext,
-                            [this, count, &moveSelection] { moveSelection(ButtonNavigator::nextIndex(selectedIndex, count)); });
+  buttonNavigator.onRelease(
+      kNext, [this, count, &moveSelection] { moveSelection(ButtonNavigator::nextIndex(selectedIndex, count)); });
   buttonNavigator.onRelease(kPrevious, [this, count, &moveSelection] {
     moveSelection(ButtonNavigator::previousIndex(selectedIndex, count));
   });

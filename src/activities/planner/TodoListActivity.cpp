@@ -181,8 +181,8 @@ void TodoListActivity::confirmDeleteTask(const size_t itemIndex) {
 
 void TodoListActivity::confirmDeleteCompleted() {
   // The popup shows heading and body on one line: the question alone reads best.
-  auto confirmation = makeUniqueNoThrow<ConfirmationActivity>(renderer, mappedInput,
-                                                              tr(STR_PLANNER_DELETE_COMPLETED_CONFIRM), "");
+  auto confirmation =
+      makeUniqueNoThrow<ConfirmationActivity>(renderer, mappedInput, tr(STR_PLANNER_DELETE_COMPLETED_CONFIRM), "");
   if (!confirmation) {
     LOG_ERR("PLN", "OOM: delete confirmation");
     return;

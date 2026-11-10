@@ -6,7 +6,7 @@ rounded corners, checked = filled box with a light check mark), with a thicker
 stroke so the outline stays crisp on 1-bit e-ink. Output uses the FreeInkUI
 Mask1 layout of the other list icons: row-major, MSB first, 0 = ink.
 
-Requires Pillow. Usage: python3 scripts/generate_planner_checkbox_icons.py
+Requires Pillow. Usage: python3 scripts/generate_planner_checkbox_icons.py && bin/clang-format-fix
 """
 
 from pathlib import Path

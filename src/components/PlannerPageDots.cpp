@@ -20,8 +20,7 @@ void draw(const GfxRenderer& renderer, const Page current) {
   const int centerY = UITheme::getTopStatusBarY(renderer) + metrics.batteryHeight / 2 + 4;
   const bool centerSlotUsed = SETTINGS.displayStatusBar.slots[1] != ReaderStatusBarItem::Empty;
   const int groupWidth = kPitch * (kPageCount - 1) + kCurrentDotSize;
-  const int groupCenterX =
-      centerSlotUsed ? metrics.contentSidePadding + groupWidth / 2 : renderer.getScreenWidth() / 2;
+  const int groupCenterX = centerSlotUsed ? metrics.contentSidePadding + groupWidth / 2 : renderer.getScreenWidth() / 2;
 
   for (int i = 0; i < kPageCount; i++) {
     const int size = i == static_cast<int>(current) ? kCurrentDotSize : kDotSize;
