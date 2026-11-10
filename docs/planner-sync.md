@@ -5,13 +5,13 @@ CrossInk-Planner adds a **Planner** screen (Home → Planner) with:
 - **To-do** — tasks stored on the SD card. Tasks stay on the device until they are
   deleted (on the device or in the companion app). Tasks can be checked off and
   added on the device; the companion app can add, edit and delete them.
-- **Calendar** — a read-only agenda of the next days, copied from Google Calendar
-  by the companion app.
+- **Calendar** — a read-only agenda of the next days, copied by the companion app
+  from the user's calendars (private iCal addresses: Google Calendar, Outlook, iCloud).
 
-Nothing on the device talks to Google. The companion app
+Nothing on the device talks to calendar services. The companion app
 ([CrossInk-fork-companion](https://github.com/lorenzocannavacciuolo12500-dot/CrossInk-fork-companion))
-signs in to Google, then pushes data to the reader over the local network while the
-reader is in **File Transfer** mode.
+downloads the calendars, then pushes data to the reader over the local network while
+the reader is in **File Transfer** mode.
 
 ## Files on the SD card
 
