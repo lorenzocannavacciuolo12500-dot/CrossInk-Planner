@@ -505,3 +505,7 @@ The final field is the WebSocket upload port.
 
 Calibre Wireless starts the same web server in STA mode and displays setup
 instructions plus WebSocket upload progress on the device screen.
+
+## Planner companion API
+
+`/api/planner/status`, `/api/planner/time`, `/api/planner/todos` and `/api/planner/calendar` are documented in [planner-sync.md](planner-sync.md).

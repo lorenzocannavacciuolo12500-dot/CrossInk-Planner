@@ -24,6 +24,7 @@
 #include "CrossPointSettings.h"
 #include "FontInstaller.h"
 #include "OpdsServerStore.h"
+#include "PlannerApi.h"
 #include "QuickActions.h"
 #include "SdCardFontSystem.h"
 #include "SettingsList.h"
@@ -412,6 +413,9 @@ void CrossPointWebServer::begin() {
   server->on("/api/opds", HTTP_GET, [this] { handleGetOpdsServers(); });
   server->on("/api/opds", HTTP_POST, [this] { handlePostOpdsServer(); });
   server->on("/api/opds/delete", HTTP_POST, [this] { handleDeleteOpdsServer(); });
+
+  // Planner companion API (to-do sync, calendar snapshot, clock)
+  PlannerApi::registerRoutes(*server);
 
   // Wi-Fi credential endpoints
   server->on("/api/wifi", HTTP_GET, [this] { handleGetWifiNetworks(); });

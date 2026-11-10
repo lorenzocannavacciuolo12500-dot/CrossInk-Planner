@@ -6,6 +6,7 @@
 #include <esp_netif.h>
 #include <esp_netif_sntp.h>
 #include <lwip/dns.h>
+#include <sys/time.h>
 #include <time.h>
 
 #include <cassert>
@@ -27,6 +28,19 @@ uint8_t daysInMonth(const uint16_t year, const uint8_t month) {
   if (month < 1 || month > 12) return 0;
   if (month == 2 && isLeapYear(year)) return 29;
   return days[month - 1];
+}
+
+// Smallest trusted system time: an unset ESP32 clock starts at 1970.
+constexpr time_t kMinTrustedUnixTime = 1735689600;  // 2025-01-01T00:00:00Z
+
+// Days since 1970-01-01 (Howard Hinnant's days_from_civil).
+int64_t daysFromCivil(int64_t y, const unsigned m, const unsigned d) {
+  y -= m <= 2;
+  const int64_t era = (y >= 0 ? y : y - 399) / 400;
+  const unsigned yoe = static_cast<unsigned>(y - era * 400);
+  const unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+  const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+  return era * 146097 + static_cast<int64_t>(doe) - 719468;
 }
 
 bool isValidDate(const uint16_t year, const uint8_t month, const uint8_t day) {
@@ -277,5 +291,48 @@ bool HalClock::syncSystemTimeFromNTP() {
     return false;
   }
 
+  return true;
+}
+
+bool HalClock::setFromUnixTime(const time_t utcSeconds) {
+  if (utcSeconds < kMinTrustedUnixTime) {
+    LOG_ERR("CLK", "Refusing implausible time %lld", static_cast<long long>(utcSeconds));
+    return false;
+  }
+  timeval tv{};
+  tv.tv_sec = utcSeconds;
+  if (settimeofday(&tv, nullptr) != 0) {
+    LOG_ERR("CLK", "settimeofday failed");
+    return false;
+  }
+  if (!_available) return true;
+
+  struct tm timeinfo;
+  gmtime_r(&utcSeconds, &timeinfo);
+  const uint16_t year = static_cast<uint16_t>(timeinfo.tm_year + 1900);
+  const uint8_t month = static_cast<uint8_t>(timeinfo.tm_mon + 1);
+  const uint8_t day = static_cast<uint8_t>(timeinfo.tm_mday);
+  if (!isValidDate(year, month, day)) return false;
+  const uint8_t weekday = static_cast<uint8_t>(timeinfo.tm_wday + 1);
+  if (!writeDateTimeToRTC(year, month, day, weekday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec)) {
+    return false;
+  }
+  LOG_INF("CLK", "RTC set from client to %04d-%02d-%02d %02d:%02d UTC", year, month, day, timeinfo.tm_hour,
+          timeinfo.tm_min);
+  return true;
+}
+
+bool HalClock::getUnixTime(time_t& utcSeconds) const {
+  if (_available) {
+    uint16_t year;
+    uint8_t month, day, hour, minute;
+    if (getDate(year, month, day, hour, minute)) {
+      utcSeconds = static_cast<time_t>(daysFromCivil(year, month, day) * 86400 + hour * 3600 + minute * 60);
+      return utcSeconds >= kMinTrustedUnixTime;
+    }
+  }
+  const time_t now = time(nullptr);
+  if (now < kMinTrustedUnixTime) return false;
+  utcSeconds = now;
   return true;
 }

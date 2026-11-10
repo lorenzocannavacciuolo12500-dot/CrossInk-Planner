@@ -35,6 +35,7 @@
 #include "RecentBookProgress.h"
 #include "RecentBooksStore.h"
 #include "SavedItemsHomeActivity.h"
+#include "activities/planner/PlannerActivity.h"
 #include "components/UITheme.h"
 #include "components/themes/dashboard/DashboardTheme.h"
 #include "components/themes/lyra/LyraCarouselTheme.h"
@@ -60,6 +61,7 @@ enum class HomeMenuAction {
   OpdsBrowser,
   ReadingStats,
   Bookmarks,
+  Planner,
   FileTransfer,
   Settings,
 };
@@ -71,7 +73,8 @@ struct HomeMenuEntry {
 };
 
 struct HomeMenuEntries {
-  static constexpr int kCapacity = 8;
+  // Continue Reading + six fixed actions + up to three optional ones.
+  static constexpr int kCapacity = 10;
   std::array<HomeMenuEntry, kCapacity> entries{};
   int count = 0;
 
@@ -248,6 +251,7 @@ void appendHomeMenuItems(HomeMenuEntries& items, bool hasOpdsServers, bool hasRe
     items.push({savedItemsLabel(hasBookmarks, hasClippings), BookmarkIcon, HomeMenuAction::Bookmarks});
   }
 
+  items.push({tr(STR_PLANNER), Recent, HomeMenuAction::Planner});
   items.push({tr(STR_FILE_TRANSFER), Transfer, HomeMenuAction::FileTransfer});
   items.push({tr(STR_SETTINGS_TITLE), Settings, HomeMenuAction::Settings});
 }
@@ -276,6 +280,7 @@ HomeMenuEntries buildMinimalMenuItems(bool hasOpdsServers, bool hasReadingStats,
     items.push({tr(STR_READING_STATS), Chart, HomeMenuAction::ReadingStats});
   }
 
+  items.push({tr(STR_PLANNER), Recent, HomeMenuAction::Planner});
   items.push({tr(STR_FILE_TRANSFER), Transfer, HomeMenuAction::FileTransfer});
   return items;
 }
@@ -531,7 +536,7 @@ static_assert(HomeActivity::kMaxCachedBooks >= LyraCarouselMetrics::values.homeR
 int HomeActivity::getMenuItemCount() const {
   if (coverGridUi) return static_cast<int>(recentBooks.size()) + (hasOpdsServers ? 5 : 4);
   const auto& metrics = UITheme::getInstance().getMetrics();
-  int count = 4;  // File Browser, Library, File transfer, Settings
+  int count = 5;  // File Browser, Library, Planner, File transfer, Settings
   if (!metrics.homeContinueReadingInMenu && !recentBooks.empty()) {
     count += getVisibleRecentBookCount();
   } else if (metrics.homeContinueReadingInMenu && !recentBooks.empty()) {
@@ -1472,6 +1477,9 @@ void HomeActivity::loop() {
           case HomeMenuAction::Bookmarks:
             onSavedItemsOpen();
             break;
+          case HomeMenuAction::Planner:
+            onPlannerOpen();
+            break;
           case HomeMenuAction::FileTransfer:
             onFileTransferOpen();
             break;
@@ -1716,6 +1724,9 @@ void HomeActivity::loop() {
         break;
       case HomeMenuAction::Bookmarks:
         onSavedItemsOpen();
+        break;
+      case HomeMenuAction::Planner:
+        onPlannerOpen();
         break;
       case HomeMenuAction::FileTransfer:
         onFileTransferOpen();
@@ -2382,6 +2393,15 @@ void HomeActivity::onReadingStatsOpen() {
                              requestUpdate();
                            });
   }
+}
+
+void HomeActivity::onPlannerOpen() {
+  auto planner = makeUniqueNoThrow<PlannerActivity>(renderer, mappedInput);
+  if (!planner) {
+    LOG_ERR("HOME", "OOM: planner activity");
+    return;
+  }
+  startActivityForResult(std::move(planner), [this](const ActivityResult&) { requestUpdate(); });
 }
 
 void HomeActivity::onSavedItemsOpen() {

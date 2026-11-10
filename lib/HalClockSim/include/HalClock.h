@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 
 #define CROSSPOINT_SIMULATOR_HAS_DATE_SEPARATOR 1
 
@@ -31,4 +32,10 @@ class HalClock {
   bool formatDate(char* buf, size_t bufSize, uint8_t utcOffsetQuarterHoursBiased = 48,
                   DateFormat dateFormat = MONTH_DAY_YEAR_LONG, char numericSeparator = '/') const;
   bool syncFromNTP() { return false; }
+  // The simulator never changes the host clock; it reports the host time.
+  bool setFromUnixTime(time_t) { return true; }
+  bool getUnixTime(time_t& utcSeconds) const {
+    utcSeconds = std::time(nullptr);
+    return true;
+  }
 };

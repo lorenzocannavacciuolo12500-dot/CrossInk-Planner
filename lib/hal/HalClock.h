@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <Rtc.h>
+#include <time.h>
 
 class HalClock;
 extern HalClock halClock;  // Singleton
@@ -73,6 +74,15 @@ class HalClock {
 
   // Sync the ESP32 system clock without requiring an external RTC.
   bool syncSystemTimeFromNTP();
+
+  // Set the system clock, and the RTC when present, from a UTC unix time
+  // supplied by a trusted local client (the Planner companion app).
+  bool setFromUnixTime(time_t utcSeconds);
+
+  // Current UTC unix time. Reads the RTC when present (minute precision);
+  // otherwise the system clock, which is only trusted once it has been set
+  // (NTP or setFromUnixTime) and therefore reads later than 2025-01-01.
+  bool getUnixTime(time_t& utcSeconds) const;
 
  private:
   bool getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute) const;
