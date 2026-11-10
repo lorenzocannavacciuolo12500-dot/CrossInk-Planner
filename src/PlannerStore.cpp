@@ -6,6 +6,7 @@
 #include <Logging.h>
 #include <PlannerJson.h>
 
+#include <atomic>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -182,5 +183,16 @@ int64_t nowForEdits() {
   time_t now = 0;
   return halClock.getUnixTime(now) ? static_cast<int64_t>(now) : 0;
 }
+
+namespace {
+std::atomic<uint32_t> gExternalChanges{0};
+std::atomic<uint8_t> gActivePage{0};
+}  // namespace
+
+void noteExternalChange() { gExternalChanges.fetch_add(1, std::memory_order_relaxed); }
+uint32_t externalChangeCount() { return gExternalChanges.load(std::memory_order_relaxed); }
+
+void setActivePage(const ResumePage page) { gActivePage.store(static_cast<uint8_t>(page), std::memory_order_relaxed); }
+ResumePage activePage() { return static_cast<ResumePage>(gActivePage.load(std::memory_order_relaxed)); }
 
 }  // namespace PlannerStore

@@ -2,7 +2,6 @@
 
 #include <GfxRenderer.h>
 
-#include "CrossPointSettings.h"
 #include "UITheme.h"
 
 namespace PlannerPageDots {
@@ -11,16 +10,24 @@ constexpr int kDotSize = 8;
 constexpr int kCurrentDotSize = 14;
 constexpr int kPitch = 24;  // distance between dot centres
 constexpr int kPageCount = 3;
+// Render task only (Home and Planner renders), so no synchronisation needed.
+bool gCenterReserved = false;
 }  // namespace
+
+bool centerReserved() { return gCenterReserved; }
+CenterReservation::CenterReservation(const bool active) : active(active) {
+  if (active) gCenterReserved = true;
+}
+CenterReservation::~CenterReservation() {
+  if (active) gCenterReserved = false;
+}
 
 void draw(const GfxRenderer& renderer, const Page current) {
   const auto& metrics = UITheme::getInstance().getMetrics();
-  // Same row as the status bar (battery/clock). Its centre slot is empty by
-  // default; when the user put something there, move the dots to the left slot.
+  // Centre of the status-bar row; the item configured there moves aside
+  // (see CenterReservation and BaseTheme::drawDisplayStatusBar).
   const int centerY = UITheme::getTopStatusBarY(renderer) + metrics.batteryHeight / 2 + 4;
-  const bool centerSlotUsed = SETTINGS.displayStatusBar.slots[1] != ReaderStatusBarItem::Empty;
-  const int groupWidth = kPitch * (kPageCount - 1) + kCurrentDotSize;
-  const int groupCenterX = centerSlotUsed ? metrics.contentSidePadding + groupWidth / 2 : renderer.getScreenWidth() / 2;
+  const int groupCenterX = renderer.getScreenWidth() / 2;
 
   for (int i = 0; i < kPageCount; i++) {
     const int size = i == static_cast<int>(current) ? kCurrentDotSize : kDotSize;

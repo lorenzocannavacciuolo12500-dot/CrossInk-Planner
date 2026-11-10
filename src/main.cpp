@@ -87,6 +87,7 @@ inline esp_sleep_wakeup_cause_t esp_sleep_get_wakeup_cause() { return ESP_SLEEP_
 #include "KOReaderCredentialStore.h"
 #include "MappedInputManager.h"
 #include "OpdsServerStore.h"
+#include "PlannerStore.h"
 #include "RecentBooksStore.h"
 #include "SdCardFontSystem.h"
 #include "SilentRestart.h"
@@ -94,6 +95,8 @@ inline esp_sleep_wakeup_cause_t esp_sleep_get_wakeup_cause() { return ESP_SLEEP_
 #include "activities/ActivityManager.h"
 #include "activities/boot_sleep/ImageFolderIndex.h"
 #include "activities/home/BookActions.h"
+#include "activities/planner/CalendarActivity.h"
+#include "activities/planner/TodoListActivity.h"
 #include "activities/reader/KOReaderSyncActivity.h"
 #include "activities/reader/ReaderUtils.h"
 #include "activities/reader/ReadingStatsUtils.h"
@@ -1087,6 +1090,8 @@ void mirrorWakeShortPressToNvs() {
 void enterDeepSleep(bool fromTimeout) {
   HalPowerManager::Lock powerLock;  // Ensure we are at normal CPU frequency for sleep preparation
   APP_STATE.lastSleepFromReader = activityManager.isReaderActivity();
+  // Read before goToSleep(): the planner page clears it in onExit().
+  APP_STATE.plannerResumePage = static_cast<uint8_t>(PlannerStore::activePage());
 
   const bool isQuickResumeSleep =
       SETTINGS.sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::QUICK_RESUME ||
@@ -1574,7 +1579,27 @@ void setup() {
         resume == BootResume::SplashlessWake && shouldClearX4WakeGhosting() && !x4WakeCanFastPaint
             ? HalDisplay::HALF_REFRESH
             : HalDisplay::FAST_REFRESH;
-    activityManager.goHome(HomeMenuItem::NONE, homeRefreshMode);
+    // Woke up from a Planner page: reopen it (Back still returns to Home).
+    // Holding Back skips it; the marker is consumed first so a page that fails
+    // to open cannot trap the device in a boot loop.
+    const auto plannerPage = static_cast<PlannerStore::ResumePage>(APP_STATE.plannerResumePage);
+    const bool backHeld = mappedInputManager.isPressed(MappedInputManager::Button::Back);
+    if (plannerPage != PlannerStore::ResumePage::None) {
+      APP_STATE.plannerResumePage = 0;
+      APP_STATE.saveToFile();
+    }
+    std::unique_ptr<PlannerListActivity> plannerScreen;
+    if (!backHeld && plannerPage == PlannerStore::ResumePage::Todo) {
+      plannerScreen = std::make_unique<TodoListActivity>(renderer, mappedInputManager);
+    } else if (!backHeld && plannerPage == PlannerStore::ResumePage::Calendar) {
+      plannerScreen = std::make_unique<CalendarActivity>(renderer, mappedInputManager);
+    }
+    if (plannerScreen) {
+      plannerScreen->setFirstRefresh(homeRefreshMode);
+      activityManager.replaceActivity(std::move(plannerScreen));
+    } else {
+      activityManager.goHome(HomeMenuItem::NONE, homeRefreshMode);
+    }
   } else {
     // Clear app state to avoid getting into a boot loop if the epub doesn't load
     const auto path = APP_STATE.openEpubPath;

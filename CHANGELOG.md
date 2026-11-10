@@ -8,6 +8,13 @@
 - To-Do List: check tasks off, add tasks with the on-screen keyboard, hold Confirm to delete a task, and clear all completed tasks. Tasks are stored on the SD card until deleted.
 - Calendar: read-only agenda from today onwards, copied by the companion app from your calendars' private iCal addresses (Google Calendar, Outlook, iCloud), with multi-day events shown on each day.
 - Companion sync API in File Transfer (`/api/planner/*`): to-do merge, calendar snapshot upload and clock/time-zone setting. See [docs/planner-sync.md](docs/planner-sync.md).
+- The To-Do List and Calendar join the saved Wi-Fi in the background so the companion app can sync while they are open; the header shows the connection state and the page refreshes after a sync.
+- Going to sleep on the To-Do List or Calendar reopens that page on wake-up.
+- "Agenda" sleep screen: today's date, today's events and the open tasks.
+
+### Changed
+
+- On Home, To-Do List and Calendar the page dots sit in the centre of the status bar; an item configured there (such as the clock) moves to the left.
 
 ## [v1.6.1] - 2026-10-03
 

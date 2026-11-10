@@ -2,6 +2,7 @@
 
 #include <PlannerTypes.h>
 
+#include <cstdint>
 #include <ctime>
 #include <mutex>
 
@@ -34,5 +35,15 @@ bool saveCalendar(const planner::Calendar& calendar);
 
 // UTC unix time for stamping edits, or 0 when the device clock is not trusted.
 int64_t nowForEdits();
+
+// Bumped by the web API whenever the companion app changed the stored data or
+// the clock, so an open Planner screen knows to reload what it shows.
+void noteExternalChange();
+uint32_t externalChangeCount();
+
+// Planner page open in the foreground (for resume-after-wake), or None.
+enum class ResumePage : uint8_t { None = 0, Todo = 1, Calendar = 2 };
+void setActivePage(ResumePage page);
+ResumePage activePage();
 
 }  // namespace PlannerStore

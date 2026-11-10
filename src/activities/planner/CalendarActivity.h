@@ -29,6 +29,7 @@ class CalendarActivity final : public PlannerListActivity {
   const char* confirmHint() const override { return ""; }
   const char* emptyText() const override;
   void onSideButton(bool next) override;
+  void reloadData() override { reload(); }
   bool pageDot(PlannerPageDots::Page& page) const override {
     page = PlannerPageDots::Page::Calendar;
     return true;
@@ -49,5 +50,6 @@ class CalendarActivity final : public PlannerListActivity {
   std::vector<std::string> subtitles;
   std::vector<std::string> values;
 
+  void reload();
   void buildAgenda();
 };

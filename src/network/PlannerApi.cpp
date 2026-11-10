@@ -193,6 +193,7 @@ void handleSetTime(WebServer& server) {
   }
   if (settingsChanged && !SETTINGS.saveToFile()) LOG_ERR("PLN", "Could not save clock settings");
 
+  PlannerStore::noteExternalChange();  // "today" may have moved
   LOG_INF("PLN", "Clock set by companion (offset %d min)", offsetMinutesFromSettings());
   server.send(200, "application/json", "{\"ok\":true}");
 }
@@ -236,6 +237,7 @@ void handlePostTodos(WebServer& server) {
       return;
     }
   }
+  PlannerStore::noteExternalChange();
   LOG_INF("PLN", "Synced %u tasks (revision %u)", static_cast<unsigned>(todos.items.size()),
           static_cast<unsigned>(todos.revision));
   sendTodos(server, todos);
@@ -264,6 +266,7 @@ void handlePostCalendar(WebServer& server) {
       return;
     }
   }
+  PlannerStore::noteExternalChange();
   LOG_INF("PLN", "Stored %u calendar events (%u skipped)", static_cast<unsigned>(calendar.events.size()),
           static_cast<unsigned>(skipped));
   char json[64];

@@ -4,8 +4,11 @@
 #include <I18n.h>
 
 #include <array>
+#include <cstdio>
 
 #include "MappedInputManager.h"
+#include "PlannerStore.h"
+#include "SilentRestart.h"
 #include "components/CompactHeader.h"
 #include "components/TouchHeaderBackButton.h"
 #include "components/UITheme.h"
@@ -27,6 +30,7 @@ const char* PlannerListActivity::confirmHint() const { return tr(STR_SELECT); }
 void PlannerListActivity::onEnter() {
   Activity::onEnter();
   uiReady = false;
+  firstPaintDone = false;
   holdHandled = false;
   sideNextSeen = false;
   sidePreviousSeen = false;
@@ -35,7 +39,72 @@ void PlannerListActivity::onEnter() {
   app.on(ACTION_ROW, &PlannerListActivity::onRowEvent, this);
   app.setScreen(&PlannerListActivity::listScreen, this);
   clampSelection();
+
+  PlannerPageDots::Page page;
+  syncEnabled = pageDot(page) && page != PlannerPageDots::Page::Home;
+  if (syncEnabled) {
+    PlannerStore::setActivePage(page == PlannerPageDots::Page::Todo ? PlannerStore::ResumePage::Todo
+                                                                    : PlannerStore::ResumePage::Calendar);
+    seenExternalChanges = PlannerStore::externalChangeCount();
+    sync.start(renderer);
+  }
+  updateSyncLabel();
   requestUpdate();
+}
+
+void PlannerListActivity::onExit() {
+  if (syncEnabled) {
+    PlannerStore::setActivePage(PlannerStore::ResumePage::None);
+    syncEnabled = false;
+    // Same policy as File Transfer: reboot (straight to Home, no splash) when
+    // the Wi-Fi session left the heap fragmented. A no-op while going to sleep.
+    if (sync.stop()) silentRestart();
+  }
+  Activity::onExit();
+}
+
+void PlannerListActivity::updateSyncLabel() {
+  char next[sizeof(syncLabel)] = {};
+  if (syncEnabled) {
+    switch (sync.state()) {
+      case PlannerBackgroundSync::State::Off:
+        break;
+      case PlannerBackgroundSync::State::Waiting:
+      case PlannerBackgroundSync::State::Connecting:
+        std::snprintf(next, sizeof(next), "%s", tr(STR_PLANNER_SYNC_CONNECTING));
+        break;
+      case PlannerBackgroundSync::State::Online:
+        std::snprintf(next, sizeof(next), tr(STR_PLANNER_SYNC_ONLINE_FORMAT), sync.ip());
+        break;
+      case PlannerBackgroundSync::State::NoSavedNetwork:
+        std::snprintf(next, sizeof(next), "%s", tr(STR_PLANNER_SYNC_NO_NETWORK));
+        break;
+      case PlannerBackgroundSync::State::Unavailable:
+        std::snprintf(next, sizeof(next), "%s", tr(STR_PLANNER_SYNC_OFFLINE));
+        break;
+    }
+  }
+  RenderLock lock;
+  std::snprintf(syncLabel, sizeof(syncLabel), "%s", next);
+}
+
+void PlannerListActivity::pollSync() {
+  if (!syncEnabled) return;
+  if (sync.poll()) {
+    updateSyncLabel();
+    requestUpdate();
+  }
+  const uint32_t changes = PlannerStore::externalChangeCount();
+  if (changes != seenExternalChanges) {
+    seenExternalChanges = changes;
+    {
+      // The render task reads the same lists: swap the data in under its lock.
+      RenderLock lock;
+      reloadData();
+      clampSelection();
+    }
+    requestUpdate();
+  }
 }
 
 void PlannerListActivity::clampSelection() {
@@ -67,6 +136,8 @@ bool PlannerListActivity::handleSideButtons() {
 }
 
 void PlannerListActivity::loop() {
+  pollSync();
+
   if (TouchHeaderBackButton::wasTapped(mappedInput, TouchHeaderBackButton::compactHeaderRect(renderer)) ||
       mappedInput.wasReleased(MappedInputManager::Button::Back)) {
     finish();
@@ -183,14 +254,22 @@ void PlannerListActivity::buildListScreen(UiApp::ScreenType& screen) {
 }
 
 void PlannerListActivity::render(RenderLock&&) {
+  PlannerPageDots::Page page;
+  const bool showDots = pageDot(page);
+  // The page dots own the status-bar centre while this screen renders.
+  const PlannerPageDots::CenterReservation dotsCenter(showDots);
   renderer.clearScreen();
   if (mappedInput.hasTouchHardware()) {
     TouchHeaderBackButton::drawCompact(renderer, screenTitle());
   } else {
-    CompactHeader::drawTitle(renderer, screenTitle(), true);
+    // While syncing in the background the status replaces the date.
+    if (syncLabel[0] != '\0') {
+      CompactHeader::drawTitleWithStatus(renderer, screenTitle(), syncLabel);
+    } else {
+      CompactHeader::drawTitle(renderer, screenTitle(), true);
+    }
   }
-  PlannerPageDots::Page page;
-  if (pageDot(page)) PlannerPageDots::draw(renderer, page);
+  if (showDots) PlannerPageDots::draw(renderer, page);
   uiReady = false;
   app.render();
   uiReady = true;
@@ -198,5 +277,6 @@ void PlannerListActivity::render(RenderLock&&) {
   const auto labels =
       mappedInput.mapLabels(mappedInput.withBackArrow(tr(STR_BACK)), confirmHint(), tr(STR_DIR_UP), tr(STR_DIR_DOWN));
   GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
-  renderer.displayBuffer();
+  renderer.displayBuffer(firstPaintDone ? HalDisplay::FAST_REFRESH : firstRefresh);
+  firstPaintDone = true;
 }

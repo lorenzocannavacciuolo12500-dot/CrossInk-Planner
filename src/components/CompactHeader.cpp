@@ -58,4 +58,25 @@ void drawTitle(const GfxRenderer& renderer, const char* title, const bool showDa
     drawHeaderDateAtBaseline(renderer, pageWidth, baselineY);
   }
 }
+
+void drawTitleWithStatus(const GfxRenderer& renderer, const char* title, const char* rightText) {
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  const int pageWidth = renderer.getScreenWidth();
+  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageWidth, headerHeight(metrics)}, "");
+
+  constexpr int rightFontId = UI_10_FONT_ID;
+  const int baselineY = titleBaselineY(renderer, metrics);
+  const int maxRightWidth = pageWidth / 2;
+  const std::string right = renderer.truncatedText(rightFontId, rightText, maxRightWidth);
+  const int rightWidth = renderer.getTextWidth(rightFontId, right.c_str());
+  const int rightX = pageWidth - metrics.contentSidePadding - rightWidth;
+  renderer.drawText(rightFontId, std::max(0, rightX), baselineY - renderer.getFontAscenderSize(rightFontId),
+                    right.c_str());
+
+  const int titleX = metrics.contentSidePadding;
+  const int maxTitleWidth = std::max(1, rightX - metrics.contentSidePadding - titleX);
+  const std::string visibleTitle = renderer.truncatedText(UI_12_FONT_ID, title, maxTitleWidth, EpdFontFamily::BOLD);
+  renderer.drawText(UI_12_FONT_ID, titleX, baselineY - renderer.getFontAscenderSize(UI_12_FONT_ID),
+                    visibleTitle.c_str(), true, EpdFontFamily::BOLD);
+}
 }  // namespace CompactHeader

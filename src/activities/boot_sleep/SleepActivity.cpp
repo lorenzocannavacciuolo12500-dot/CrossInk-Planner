@@ -37,6 +37,7 @@
 #include "ImageFolderIndex.h"
 #include "RecentBooksStore.h"
 #include "SleepCoverAssets.h"
+#include "activities/planner/PlannerAgendaSleep.h"
 #include "activities/reader/ReaderUtils.h"
 #include "components/UITheme.h"
 #include "components/themes/dashboard/DashboardTheme.h"
@@ -582,6 +583,8 @@ void SleepActivity::onEnter() {
       return renderMinimalStatsSleepScreen();
     case (CrossPointSettings::SLEEP_SCREEN_MODE::DASHBOARD_SLEEP):
       return renderDashboardSleepScreen();
+    case (CrossPointSettings::SLEEP_SCREEN_MODE::AGENDA_SLEEP):
+      return renderAgendaSleepScreen();
     default:
       return renderDefaultSleepScreen();
   }
@@ -949,6 +952,11 @@ void SleepActivity::renderDashboardSleepScreen() const {
   DashboardTheme theme;
   theme.drawSleepScreen(renderer, book, &bookStats, &globalStats, progressPercent, chapterTitle.c_str(),
                         sleepCoverFilterInvertsGeneratedScreen());
+  renderer.displayBuffer(HalDisplay::HALF_REFRESH, TURN_OFF_SCREEN_AFTER_SLEEP_REFRESH);
+}
+
+void SleepActivity::renderAgendaSleepScreen() const {
+  PlannerAgendaSleep::draw(renderer);
   renderer.displayBuffer(HalDisplay::HALF_REFRESH, TURN_OFF_SCREEN_AFTER_SLEEP_REFRESH);
 }
 

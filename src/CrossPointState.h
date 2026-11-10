@@ -33,6 +33,9 @@ class CrossPointState : public PersistableStore<CrossPointState> {
   uint8_t recentBootFill = 0;                         // valid entries (0..BOOT_RECENT_COUNT)
   uint8_t readerActivityLoadCount = 0;
   bool lastSleepFromReader = false;
+  // CrossInk-Planner page open when the device went to sleep (PlannerStore::ResumePage):
+  // waking up reopens it instead of Home.
+  uint8_t plannerResumePage = 0;
   bool showBootScreen = true;
   // One-shot marker set when a Quick Lock timeout puts the device to sleep.
   // The next boot uses it only to discard Quick Lock's temporary frontlight state.

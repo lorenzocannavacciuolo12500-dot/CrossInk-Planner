@@ -25,6 +25,13 @@ CalendarActivity::CalendarActivity(GfxRenderer& renderer, MappedInputManager& ma
     : PlannerListActivity("PlannerCalendar", renderer, mappedInput) {}
 
 void CalendarActivity::onEnter() {
+  reload();
+  selectedIndex = 0;
+  topIndex = 0;
+  PlannerListActivity::onEnter();
+}
+
+void CalendarActivity::reload() {
   {
     std::lock_guard<std::mutex> guard(PlannerStore::lock());
     hasSnapshot = Storage.exists(PlannerStore::kCalendarPath);
@@ -40,10 +47,6 @@ void CalendarActivity::onEnter() {
   char stamp[48];
   PlannerFormat::stamp(calendar.generatedAt, todayYmd, stamp, sizeof(stamp));
   std::snprintf(updatedLabel, sizeof(updatedLabel), tr(STR_PLANNER_UPDATED_FORMAT), stamp);
-
-  selectedIndex = 0;
-  topIndex = 0;
-  PlannerListActivity::onEnter();
 }
 
 void CalendarActivity::onExit() {

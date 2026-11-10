@@ -6,7 +6,16 @@ three dots at the top of the screen (the current page has the larger dot). On Ho
 **Next Page** (right edge on the X3, lower button on the X4) opens the To-Do List and
 **Previous Page** (left edge on the X3, upper button on the X4) opens the Calendar; the
 opposite side button brings you back Home. Everywhere on these pages the front
-buttons move the selection.
+buttons move the selection. The dots take the centre of the status bar on these
+three pages; an item configured there (e.g. the clock) moves to the left slot, or to
+the right one if the left is used.
+
+Going to sleep on the To-Do List or Calendar reopens that page on wake-up (Back still
+returns Home; holding Back while waking goes straight Home). The side buttons cannot
+wake the device: on the X3/X4 they are read through an ADC ladder that is not a
+deep-sleep wake source, so Power is still needed. To see the planner without waking
+the device, choose **Settings → Display → Sleep Screen → Agenda**: the sleep screen
+then shows the date, today's events and the open tasks (as of the last sync).
 
 - **To-Do List** — tasks stored on the SD card. Tasks stay on the device until they are
   deleted (on the device or in the companion app). Tasks can be checked off and
@@ -17,7 +26,18 @@ buttons move the selection.
 Nothing on the device talks to calendar services. The companion app
 ([CrossInk-fork-companion](https://github.com/lorenzocannavacciuolo12500-dot/CrossInk-fork-companion))
 downloads the calendars, then pushes data to the reader over the local network while
-the reader is in **File Transfer** mode.
+the reader shows the **To-Do List** or the **Calendar**, or is in **File Transfer** mode.
+
+### Background sync on the To-Do List and Calendar
+
+About 1.5 s after one of these pages opens, the reader joins the last Wi-Fi network
+it used (then the other saved ones, 15 s each) and starts the same web server as File
+Transfer, with modem sleep on to save battery. The header shows the state instead of
+the date: "Connecting…", "Sync <ip>", "No saved Wi-Fi" (join a network once through
+File Transfer) or "Wi-Fi unavailable". When the companion changes tasks, the calendar
+or the clock, the page reloads. Leaving the page turns Wi-Fi off; if the largest free
+heap block is then below 85 % of what it was before Wi-Fi started, the reader reboots
+silently to Home to clear fragmentation (like File Transfer). Serial log tag: `PLNSYNC`.
 
 ## Files on the SD card
 
@@ -88,7 +108,8 @@ preferred (Dart's `jsonEncode` already does this).
 
 ## HTTP API
 
-Available while the reader shows **File Transfer** (`CrossPointWebServer`), on port 80.
+Available while the reader shows **File Transfer**, the **To-Do List** or the
+**Calendar** (`CrossPointWebServer`), on port 80.
 The companion finds the reader with the existing discovery broadcast: send the UDP
 datagram `hello` to port `8134`; the reader answers `crosspoint (on <hostname>);81`
 from its IP address.
@@ -172,4 +193,8 @@ See [webserver-endpoints.md](webserver-endpoints.md).
 4. `curl -X POST -H 'Content-Type: application/json' -d '{"utc":'$(date +%s)',"utcOffsetMin":60}' http://<ip>/api/planner/time`
    then check the clock in the status bar.
 5. Post a calendar snapshot, exit File Transfer, open Planner → Calendar.
-6. Serial log tag: `PLN`.
+6. Open the To-Do List with a saved network: the header shows "Sync <ip>" within ~5 s;
+   run a sync from the companion app and the list updates without leaving the page.
+7. Sleep on the To-Do List, wake with Power: the To-Do List reopens. With the Agenda
+   sleep screen selected, the sleep screen lists today's events and the open tasks.
+8. Serial log tags: `PLN`, `PLNSYNC` (heap before/after Wi-Fi).

@@ -21,6 +21,7 @@
 #include "RecentBooksStore.h"
 #include "activities/reader/BookReadingStats.h"
 #include "components/HeaderDate.h"
+#include "components/PlannerPageDots.h"
 #include "components/TouchActionButtons.h"
 #include "components/TouchRegistry.h"
 #include "components/UIScale.h"
@@ -1004,7 +1005,17 @@ void BaseTheme::drawDisplayStatusBar(const GfxRenderer& renderer, const int topY
   ReaderStatusBarContent content;
   content.outsideReader = true;
   content.previewOriginY = topY + UITheme::getTopStatusBarInset(renderer);
-  const auto config = SETTINGS.displayStatusBar.asReaderConfig();
+  DisplayStatusBarConfig display = SETTINGS.displayStatusBar;
+  if (PlannerPageDots::centerReserved() && display.slots[1] != ReaderStatusBarItem::Empty) {
+    // Page dots take the centre on Home / To-Do List / Calendar: move that item aside.
+    if (display.slots[0] == ReaderStatusBarItem::Empty) {
+      display.slots[0] = display.slots[1];
+    } else if (display.slots[2] == ReaderStatusBarItem::Empty) {
+      display.slots[2] = display.slots[1];
+    }
+    display.slots[1] = ReaderStatusBarItem::Empty;
+  }
+  const auto config = display.asReaderConfig();
   drawReaderStatusBar(renderer, ReaderStatusBarPosition::Top, content, &config);
 }
 

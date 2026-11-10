@@ -2065,6 +2065,8 @@ void HomeActivity::render(RenderLock&&) {
   }
 
   invalidatePolarityMismatchedCaches();
+  // The page dots own the status-bar centre for this whole render.
+  const PlannerPageDots::CenterReservation dotsCenter;
 
   const auto& metrics = UITheme::getInstance().getMetrics();
   const auto pageWidth = renderer.getScreenWidth();

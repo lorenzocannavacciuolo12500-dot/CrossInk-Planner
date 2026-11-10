@@ -2,6 +2,7 @@
 
 #include <FreeInkApp.h>
 #include <FreeInkUIGfxRenderer.h>
+#include <HalDisplay.h>
 
 #include <atomic>
 #include <vector>
@@ -9,6 +10,7 @@
 #include "activities/Activity.h"
 #include "components/PlannerPageDots.h"
 #include "components/UIThemeTokens.h"
+#include "network/PlannerBackgroundSync.h"
 #include "util/ButtonNavigator.h"
 
 /**
@@ -18,14 +20,22 @@
  *
  * The front buttons move the selection. The side buttons never do: they only
  * move between pages (Calendar <- Home -> To-Do List) through onSideButton().
+ *
+ * Pager screens (those with page dots: To-Do List and Calendar) also join the
+ * saved Wi-Fi in the background so the companion app can sync while they are
+ * open; reloadData() runs when it changed something.
  */
 class PlannerListActivity : public Activity {
  public:
   PlannerListActivity(const char* name, GfxRenderer& renderer, MappedInputManager& mappedInput);
 
   void onEnter() override;
+  void onExit() override;
   void loop() override;
   void render(RenderLock&&) override;
+
+  // Refresh mode of the first paint (e.g. a cleaner one right after wake-up).
+  void setFirstRefresh(HalDisplay::RefreshMode mode) { firstRefresh = mode; }
 
  protected:
   using UiApp = freeink::ui::FreeInkApp<20, 4>;
@@ -44,6 +54,8 @@ class PlannerListActivity : public Activity {
   virtual void onSideButton(bool /*next*/) {}
   // Page dots shown in the status row, or false for screens outside the pager.
   virtual bool pageDot(PlannerPageDots::Page& /*page*/) const { return false; }
+  // Reload from PlannerStore after the companion app changed the data.
+  virtual void reloadData() {}
 
   // Keeps the selection inside the list after rows were added or removed.
   void clampSelection();
@@ -60,6 +72,15 @@ class PlannerListActivity : public Activity {
   bool sideNextSeen = false;
   bool sidePreviousSeen = false;
   bool handleSideButtons();
+
+  HalDisplay::RefreshMode firstRefresh = HalDisplay::FAST_REFRESH;
+  bool firstPaintDone = false;
+  PlannerBackgroundSync sync;
+  bool syncEnabled = false;
+  uint32_t seenExternalChanges = 0;
+  char syncLabel[40] = {};  // header status; written under RenderLock
+  void pollSync();
+  void updateSyncLabel();
   freeink::ui::GfxRendererTarget uiTarget;  // must precede `app`: the app holds a reference to it
   UiApp app;
   std::atomic<bool> uiReady{false};
