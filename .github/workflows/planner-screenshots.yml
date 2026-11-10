@@ -1,0 +1,74 @@
+name: Planner screenshots
+
+# Runs the firmware in the CrossInk simulator (Linux, SDL dummy video driver)
+# and publishes PNG screenshots of the Planner screens to the branch
+# `ci-results/screenshots`. Used for the README images.
+on:
+  push:
+    paths:
+      - "scripts/planner_screenshots.py"
+      - ".github/workflows/planner-screenshots.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: planner-screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Install SDL2, OpenSSL and PlatformIO
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libsdl2-dev libssl-dev > /dev/null
+          uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip pillow
+
+      - name: Build simulator
+        id: build
+        continue-on-error: true
+        env:
+          PLATFORMIO_BUILD_FLAGS: "-lssl -lcrypto"
+        run: |
+          set -o pipefail
+          mkdir -p shots
+          pio run -j4 -e simulator 2>&1 | tail -n 300 > shots/build.log
+
+      - name: Capture screenshots
+        id: capture
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: python3 scripts/planner_screenshots.py --out shots
+
+      - name: Publish results
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p shots
+          git rev-parse HEAD > shots/commit.txt
+          printf 'build: %s\ncapture: %s\n' "${{ steps.build.outcome }}" "${{ steps.capture.outcome }}" > shots/summary.txt
+          cd shots
+          git init -q -b results
+          git config user.name "planner-ci"
+          git config user.email "planner-ci@users.noreply.github.com"
+          git add -A
+          git commit -qm "Screenshots for $(cat commit.txt)"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-results/screenshots"
