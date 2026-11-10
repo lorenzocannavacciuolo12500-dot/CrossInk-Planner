@@ -1,0 +1,122 @@
+name: Planner CI
+
+# Builds feature branches of CrossInk-Planner and publishes logs plus the
+# firmware image to a `ci-results/<branch>` branch, so results can be read
+# with plain git (no Actions API needed).
+on:
+  push:
+    branches: ["feat/**", "fix/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: planner-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio/packages
+            ~/.platformio/platforms
+          key: ${{ runner.os }}-platformio-py3.14-core6.1.19-planner-${{ hashFiles('platformio.ini') }}
+
+      - name: Install PlatformIO Core
+        run: uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+
+      - name: Prepare output folder
+        run: mkdir -p ci-out && git rev-parse HEAD > ci-out/commit.txt
+
+      - name: Planner native tests
+        id: tests
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          g++ -std=c++20 -Wall -Wextra -pedantic -Werror -O1 -g -fsanitize=address,undefined \
+            -Ilib/Planner -Ilib/JsonParser test/planner/PlannerTest.cpp lib/Planner/*.cpp \
+            lib/JsonParser/StreamingJsonParser.cpp -o planner_tests 2>&1 | tee ci-out/tests.log
+          ./planner_tests 2>&1 | tee -a ci-out/tests.log
+
+      - name: clang-format 21
+        id: format
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          wget -q https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 21 > /dev/null
+          sudo apt-get install -y -qq clang-format-21 > /dev/null
+          PATH="/usr/lib/llvm-21/bin:$PATH" ./bin/clang-format-fix
+          git diff -- src lib include test > ci-out/clang-format.patch
+          git checkout -- src lib include test
+          test ! -s ci-out/clang-format.patch
+
+      - name: Pin pioarduino core inside the platform penv
+        continue-on-error: true
+        run: |
+          pio pkg install -e default
+          uv pip install --python ~/.platformio/penv/bin/python "pioarduino==6.1.19"
+
+      - name: Build default (Xteink X3/X4)
+        id: default
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pio run -j2 -e default 2>&1 | tee ci-out/pio-default.log
+          cp .pio/build/default/*.bin ci-out/ 2>/dev/null || true
+
+      - name: Build x4-pro (touch, ESP32-S3)
+        id: x4pro
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pio run -j2 -e x4-pro 2>&1 | tail -n 400 > ci-out/pio-x4-pro.log
+
+      - name: Static analysis (pio check)
+        id: check
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pio check -e default --fail-on-defect low --fail-on-defect medium --fail-on-defect high 2>&1 \
+            | tail -n 400 > ci-out/pio-check.log
+
+      - name: Publish results
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > ci-out/summary.txt <<EOF
+          commit:  $(cat ci-out/commit.txt)
+          tests:   ${{ steps.tests.outcome }}
+          format:  ${{ steps.format.outcome }}
+          default: ${{ steps.default.outcome }}
+          x4-pro:  ${{ steps.x4pro.outcome }}
+          check:   ${{ steps.check.outcome }}
+          EOF
+          cat ci-out/summary.txt
+          branch="ci-results/${GITHUB_REF_NAME//\//-}"
+          cd ci-out
+          git init -q -b results
+          git config user.name "planner-ci"
+          git config user.email "planner-ci@users.noreply.github.com"
+          git add -A
+          git commit -qm "CI results for $(cat commit.txt)"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${branch}"
