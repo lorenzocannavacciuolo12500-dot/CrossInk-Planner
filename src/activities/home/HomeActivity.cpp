@@ -35,7 +35,9 @@
 #include "RecentBookProgress.h"
 #include "RecentBooksStore.h"
 #include "SavedItemsHomeActivity.h"
+#include "activities/planner/CalendarActivity.h"
 #include "activities/planner/PlannerActivity.h"
+#include "activities/planner/TodoListActivity.h"
 #include "components/UITheme.h"
 #include "components/themes/dashboard/DashboardTheme.h"
 #include "components/themes/lyra/LyraCarouselTheme.h"
@@ -816,6 +818,8 @@ void HomeActivity::loadRecentCovers(int coverHeight) {
 
 void HomeActivity::onEnter() {
   Activity::onEnter();
+  plannerSideDownSeen = false;
+  plannerSideUpSeen = false;
 
   hasOpdsServers = OPDS_STORE.hasServers();
   if (UITheme::hasCoverGridHome()) {
@@ -1387,6 +1391,8 @@ void HomeActivity::loop() {
   }
 
   if (quickActionsPopup.handleInput(mappedInput, [this] { requestUpdate(); })) return;
+
+  if (handlePlannerSideButtons()) return;
 
   if (coverGridUi) {
     const int touched = coverGridUi->selectedAction(mappedInput);
@@ -2393,6 +2399,46 @@ void HomeActivity::onReadingStatsOpen() {
                              requestUpdate();
                            });
   }
+}
+
+bool HomeActivity::handlePlannerSideButtons() {
+  // Home side buttons open the Planner directly: the Next Page side button
+  // (right edge on the X3) opens the to-do list, Previous Page (left edge) the
+  // calendar. They act on release, and only for presses that started on Home,
+  // so a button still held when Home appears (or a chord) cannot trigger them.
+  // While a side button is involved, the menu below does not see it, so the
+  // front buttons remain the way to move through the Home menu.
+  using Button = MappedInputManager::Button;
+  if (mappedInput.wasPressed(Button::Down)) plannerSideDownSeen = true;
+  if (mappedInput.wasPressed(Button::Up)) plannerSideUpSeen = true;
+
+  if (mappedInput.wasReleased(Button::Down)) {
+    const bool seen = plannerSideDownSeen;
+    plannerSideDownSeen = false;
+    if (seen && !mappedInput.isPressed(Button::Up)) onPlannerScreenOpen(PlannerScreen::Todo);
+    return true;
+  }
+  if (mappedInput.wasReleased(Button::Up)) {
+    const bool seen = plannerSideUpSeen;
+    plannerSideUpSeen = false;
+    if (seen && !mappedInput.isPressed(Button::Down)) onPlannerScreenOpen(PlannerScreen::Calendar);
+    return true;
+  }
+  return mappedInput.isPressed(Button::Down) || mappedInput.isPressed(Button::Up);
+}
+
+void HomeActivity::onPlannerScreenOpen(const PlannerScreen screen) {
+  std::unique_ptr<Activity> next;
+  if (screen == PlannerScreen::Todo) {
+    next = makeUniqueNoThrow<TodoListActivity>(renderer, mappedInput);
+  } else {
+    next = makeUniqueNoThrow<CalendarActivity>(renderer, mappedInput);
+  }
+  if (!next) {
+    LOG_ERR("HOME", "OOM: planner screen");
+    return;
+  }
+  startActivityForResult(std::move(next), [this](const ActivityResult&) { requestUpdate(); });
 }
 
 void HomeActivity::onPlannerOpen() {

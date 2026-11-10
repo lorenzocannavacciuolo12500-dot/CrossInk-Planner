@@ -3,7 +3,8 @@
 ### Added
 
 - Planner on the Home screen: a To-do list and a Calendar agenda.
-- To-do: check tasks off, add tasks with the on-screen keyboard, hold Confirm to delete a task, and clear all completed tasks. Tasks are stored on the SD card until deleted.
+- On the Home screen, the Next Page side button (right edge on the X3) opens the To-Do List and the Previous Page side button (left edge) opens the Calendar.
+- To-Do List: check tasks off, add tasks with the on-screen keyboard, hold Confirm to delete a task, and clear all completed tasks. Tasks are stored on the SD card until deleted.
 - Calendar: read-only agenda from today onwards, copied by the companion app from your calendars' private iCal addresses (Google Calendar, Outlook, iCloud), with multi-day events shown on each day.
 - Companion sync API in File Transfer (`/api/planner/*`): to-do merge, calendar snapshot upload and clock/time-zone setting. See [docs/planner-sync.md](docs/planner-sync.md).
 

@@ -107,6 +107,12 @@ class HomeActivity final : public Activity {
   void onReadingStatsOpen();
   void onSavedItemsOpen();
   void onPlannerOpen();
+  enum class PlannerScreen : uint8_t { Todo, Calendar };
+  void onPlannerScreenOpen(PlannerScreen screen);
+  // Side-button shortcuts to the Planner; returns true when it consumed input.
+  bool handlePlannerSideButtons();
+  bool plannerSideDownSeen = false;
+  bool plannerSideUpSeen = false;
 
   int getMenuItemCount() const;
   bool storeCoverBuffer();    // Store frame buffer for cover image
