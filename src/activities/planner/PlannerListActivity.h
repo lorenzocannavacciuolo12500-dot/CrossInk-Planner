@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "activities/Activity.h"
+#include "components/PlannerPageDots.h"
 #include "components/UIThemeTokens.h"
 #include "util/ButtonNavigator.h"
 
@@ -14,6 +15,9 @@
  * Shared list screen for the Planner (hub, to-do list, calendar agenda).
  * Owns FreeInkUI list rendering, button/touch navigation, paging and the
  * hold-Confirm gesture, so each Planner screen only describes its rows.
+ *
+ * The front buttons move the selection. The side buttons never do: they only
+ * move between pages (Calendar <- Home -> To-Do List) through onSideButton().
  */
 class PlannerListActivity : public Activity {
  public:
@@ -36,6 +40,10 @@ class PlannerListActivity : public Activity {
   virtual const char* emptyText() const { return nullptr; }
   virtual UiListRowType rowType() const { return UiListRowType::WithSubtitle; }
   virtual bool supportsLongPress() const { return false; }
+  // Side button released (next = Next Page side button, right edge on the X3).
+  virtual void onSideButton(bool /*next*/) {}
+  // Page dots shown in the status row, or false for screens outside the pager.
+  virtual bool pageDot(PlannerPageDots::Page& /*page*/) const { return false; }
 
   // Keeps the selection inside the list after rows were added or removed.
   void clampSelection();
@@ -49,6 +57,9 @@ class PlannerListActivity : public Activity {
 
   ButtonNavigator buttonNavigator;
   bool holdHandled = false;
+  bool sideNextSeen = false;
+  bool sidePreviousSeen = false;
+  bool handleSideButtons();
   freeink::ui::GfxRendererTarget uiTarget;  // must precede `app`: the app holds a reference to it
   UiApp app;
   std::atomic<bool> uiReady{false};

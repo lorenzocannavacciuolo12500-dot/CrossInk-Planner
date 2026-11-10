@@ -11,7 +11,8 @@
 /**
  * Planner → Calendar: read-only agenda from today onwards, built from the last
  * snapshot the companion app pushed (calendar.json). Multi-day events appear
- * once per day they cover.
+ * once per day they cover. The Next Page side button (right edge on the X3)
+ * goes back to Home.
  */
 class CalendarActivity final : public PlannerListActivity {
  public:
@@ -27,6 +28,11 @@ class CalendarActivity final : public PlannerListActivity {
   const char* screenTitle() const override;
   const char* confirmHint() const override { return ""; }
   const char* emptyText() const override;
+  void onSideButton(bool next) override;
+  bool pageDot(PlannerPageDots::Page& page) const override {
+    page = PlannerPageDots::Page::Calendar;
+    return true;
+  }
 
  private:
   struct Row {

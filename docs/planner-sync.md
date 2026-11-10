@@ -1,10 +1,12 @@
 # Planner: To-do list, calendar and companion sync
 
 CrossInk-Planner adds a **Planner** screen (Home → Planner) with the screens below.
-On the Home screen the side buttons open them directly: **Next Page** (right edge on
-the X3, lower button on the X4) opens the To-Do List, **Previous Page** (left edge on
-the X3, upper button on the X4) opens the Calendar. Use the front buttons to move
-through the Home menu.
+The side buttons move between three pages, **Calendar ← Home → To-Do List**, shown by
+three dots at the top of the screen (the current page has the larger dot). On Home,
+**Next Page** (right edge on the X3, lower button on the X4) opens the To-Do List and
+**Previous Page** (left edge on the X3, upper button on the X4) opens the Calendar; the
+opposite side button brings you back Home. Everywhere on these pages the front
+buttons move the selection.
 
 - **To-Do List** — tasks stored on the SD card. Tasks stay on the device until they are
   deleted (on the device or in the companion app). Tasks can be checked off and

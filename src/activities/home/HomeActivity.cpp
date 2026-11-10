@@ -36,6 +36,7 @@
 #include "RecentBooksStore.h"
 #include "SavedItemsHomeActivity.h"
 #include "activities/planner/CalendarActivity.h"
+#include "components/PlannerPageDots.h"
 #include "activities/planner/PlannerActivity.h"
 #include "activities/planner/TodoListActivity.h"
 #include "components/UITheme.h"
@@ -2069,6 +2070,8 @@ void HomeActivity::render(RenderLock&&) {
   const auto pageWidth = renderer.getScreenWidth();
   const auto pageHeight = renderer.getScreenHeight();
   const auto displayHomeBuffer = [this] {
+    // Calendar <- Home -> To-Do List: the side buttons move between these pages.
+    PlannerPageDots::draw(renderer, PlannerPageDots::Page::Home);
     renderer.displayBuffer(initialRefreshMode);
     initialRefreshMode = HalDisplay::FAST_REFRESH;
   };

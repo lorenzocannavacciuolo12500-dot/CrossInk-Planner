@@ -9,7 +9,8 @@
 #include "PlannerListActivity.h"
 
 /**
- * Planner → To-do. Confirm checks a task on or off; holding Confirm deletes it.
+ * To-Do List. Confirm checks a task on or off; holding Confirm deletes it.
+ * The Previous Page side button (left edge on the X3) goes back to Home.
  * The last rows add a task (on-screen keyboard) and clear completed tasks.
  * Every change is written to todos.json right away and synced with the
  * companion app the next time File Transfer is open.
@@ -28,6 +29,11 @@ class TodoListActivity final : public PlannerListActivity {
   const char* screenTitle() const override;
   const char* confirmHint() const override;
   bool supportsLongPress() const override { return true; }
+  void onSideButton(bool next) override;
+  bool pageDot(PlannerPageDots::Page& page) const override {
+    page = PlannerPageDots::Page::Todo;
+    return true;
+  }
 
  private:
   planner::TodoList list;

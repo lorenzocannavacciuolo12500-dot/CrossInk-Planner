@@ -3,6 +3,8 @@
 #include <GfxRenderer.h>
 #include <I18n.h>
 
+#include <array>
+
 #include "MappedInputManager.h"
 #include "components/CompactHeader.h"
 #include "components/TouchHeaderBackButton.h"
@@ -26,6 +28,8 @@ void PlannerListActivity::onEnter() {
   Activity::onEnter();
   uiReady = false;
   holdHandled = false;
+  sideNextSeen = false;
+  sidePreviousSeen = false;
   visibleRows = 1;
   applySharedUiTheme(app, uiTarget);
   app.on(ACTION_ROW, &PlannerListActivity::onRowEvent, this);
@@ -41,12 +45,35 @@ void PlannerListActivity::clampSelection() {
   topIndex = followListSelection(selectedIndex, topIndex, visibleRows, count);
 }
 
+bool PlannerListActivity::handleSideButtons() {
+  // Act on release, and only for presses that started on this screen, so the
+  // release of the press that opened it (or a chord) is not acted on again.
+  using Button = MappedInputManager::Button;
+  if (mappedInput.wasPressed(Button::Down)) sideNextSeen = true;
+  if (mappedInput.wasPressed(Button::Up)) sidePreviousSeen = true;
+  if (mappedInput.wasReleased(Button::Down)) {
+    const bool seen = sideNextSeen;
+    sideNextSeen = false;
+    if (seen && !mappedInput.isPressed(Button::Up)) onSideButton(true);
+    return true;
+  }
+  if (mappedInput.wasReleased(Button::Up)) {
+    const bool seen = sidePreviousSeen;
+    sidePreviousSeen = false;
+    if (seen && !mappedInput.isPressed(Button::Down)) onSideButton(false);
+    return true;
+  }
+  return mappedInput.isPressed(Button::Down) || mappedInput.isPressed(Button::Up);
+}
+
 void PlannerListActivity::loop() {
   if (TouchHeaderBackButton::wasTapped(mappedInput, TouchHeaderBackButton::compactHeaderRect(renderer)) ||
       mappedInput.wasReleased(MappedInputManager::Button::Back)) {
     finish();
     return;
   }
+
+  if (handleSideButtons()) return;
 
   const int count = itemCount();
 
@@ -92,14 +119,20 @@ void PlannerListActivity::loop() {
     topIndex = followListSelection(selectedIndex, topIndex, visibleRows, count);
     requestUpdate();
   };
-  buttonNavigator.onNextRelease(
-      [this, count, &moveSelection] { moveSelection(ButtonNavigator::nextIndex(selectedIndex, count)); });
-  buttonNavigator.onPreviousRelease(
-      [this, count, &moveSelection] { moveSelection(ButtonNavigator::previousIndex(selectedIndex, count)); });
-  buttonNavigator.onNextContinuous([this, count, &moveSelection] {
+  // Front buttons only: the side buttons are reserved for page changes.
+  constexpr std::array<MappedInputManager::Button, 2> kNext{MappedInputManager::Button::Right,
+                                                            MappedInputManager::Button::Right};
+  constexpr std::array<MappedInputManager::Button, 2> kPrevious{MappedInputManager::Button::Left,
+                                                                MappedInputManager::Button::Left};
+  buttonNavigator.onRelease(kNext,
+                            [this, count, &moveSelection] { moveSelection(ButtonNavigator::nextIndex(selectedIndex, count)); });
+  buttonNavigator.onRelease(kPrevious, [this, count, &moveSelection] {
+    moveSelection(ButtonNavigator::previousIndex(selectedIndex, count));
+  });
+  buttonNavigator.onContinuous(kNext, [this, count, &moveSelection] {
     moveSelection(ButtonNavigator::nextPageIndex(selectedIndex, count, visibleRows));
   });
-  buttonNavigator.onPreviousContinuous([this, count, &moveSelection] {
+  buttonNavigator.onContinuous(kPrevious, [this, count, &moveSelection] {
     moveSelection(ButtonNavigator::previousPageIndex(selectedIndex, count, visibleRows));
   });
 }
@@ -156,6 +189,8 @@ void PlannerListActivity::render(RenderLock&&) {
   } else {
     CompactHeader::drawTitle(renderer, screenTitle(), true);
   }
+  PlannerPageDots::Page page;
+  if (pageDot(page)) PlannerPageDots::draw(renderer, page);
   uiReady = false;
   app.render();
   uiReady = true;

@@ -117,3 +117,8 @@ void CalendarActivity::fillItems(std::vector<fui::ListItem>& items) {
   footer.enabled = false;
   items.push_back(footer);
 }
+
+void CalendarActivity::onSideButton(const bool next) {
+  // Calendar <- Home -> To-Do List: Next Page returns to Home.
+  if (next) onGoHome();
+}

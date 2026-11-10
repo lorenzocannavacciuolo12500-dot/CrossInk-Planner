@@ -1,6 +1,7 @@
 #include "TodoListActivity.h"
 
 #include <Arduino.h>
+#include <FreeInkUIIcon.h>
 #include <I18n.h>
 #include <Logging.h>
 #include <Memory.h>
@@ -14,6 +15,7 @@
 #include "PlannerStore.h"
 #include "activities/util/ConfirmationActivity.h"
 #include "activities/util/KeyboardEntryActivity.h"
+#include "components/icons/plannerCheckboxIcons.h"
 
 namespace fui = freeink::ui;
 
@@ -93,8 +95,8 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
     fui::ListItem row;
     row.label = task.title.c_str();
     row.subtitle = subtitles.back().empty() ? nullptr : subtitles.back().c_str();
-    row.toggle = true;
-    row.toggleChecked = task.done;
+    // Square checkbox in front of the title, filled with a check mark when done.
+    row.icon = fui::bitmapFromIcon(task.done ? icon_planner_checkbox_checked_32 : icon_planner_checkbox_empty_32);
     items.push_back(row);
   }
 
@@ -178,8 +180,9 @@ void TodoListActivity::confirmDeleteTask(const size_t itemIndex) {
 }
 
 void TodoListActivity::confirmDeleteCompleted() {
-  auto confirmation = makeUniqueNoThrow<ConfirmationActivity>(
-      renderer, mappedInput, tr(STR_PLANNER_DELETE_COMPLETED_CONFIRM), deleteCompletedLabel);
+  // The popup shows heading and body on one line: the question alone reads best.
+  auto confirmation = makeUniqueNoThrow<ConfirmationActivity>(renderer, mappedInput,
+                                                              tr(STR_PLANNER_DELETE_COMPLETED_CONFIRM), "");
   if (!confirmation) {
     LOG_ERR("PLN", "OOM: delete confirmation");
     return;
@@ -188,4 +191,9 @@ void TodoListActivity::confirmDeleteCompleted() {
     if (result.isCancelled) return;
     if (planner::deleteCompletedLocalTodos(list, PlannerStore::nowForEdits()) > 0) persist();
   });
+}
+
+void TodoListActivity::onSideButton(const bool next) {
+  // Calendar <- Home -> To-Do List: Previous Page returns to Home.
+  if (!next) onGoHome();
 }
