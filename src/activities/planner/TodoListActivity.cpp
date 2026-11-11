@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <iterator>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -82,9 +83,9 @@ void TodoListActivity::refreshDerived() {
       rows.push_back(Row{0, section.listIndex, true});
       if (isCollapsed(section.listIndex)) continue;
     }
-    for (const uint16_t item : section.items) {
-      rows.push_back(Row{item, section.listIndex, false});
-    }
+    const uint8_t listIndex = section.listIndex;
+    std::transform(section.items.begin(), section.items.end(), std::back_inserter(rows),
+                   [listIndex](const uint16_t item) { return Row{item, listIndex, false}; });
   }
   completedCount = visible - planner::countOpenTodos(list);
   todayYmd = PlannerFormat::today();
@@ -123,16 +124,11 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
 
   for (const Row& row : rows) {
     if (row.heading) {
-      unsigned count = 0;
-      for (const Row& other : rows) {
-        if (!other.heading && other.listIndex == row.listIndex) count++;
-      }
-      if (isCollapsed(row.listIndex)) {
-        count = 0;
-        for (const auto& item : list.items) {
-          if (!item.deleted && item.listIndex == row.listIndex) count++;
-        }
-      }
+      // Counted on the whole list, so a folded list still says how many it holds.
+      const auto count = static_cast<unsigned>(
+          std::count_if(list.items.begin(), list.items.end(), [&row](const planner::TodoItem& item) {
+            return !item.deleted && item.listIndex == row.listIndex;
+          }));
       char text[48];
       std::snprintf(text, sizeof(text), tr(STR_PLANNER_LIST_TASKS_FORMAT), count);
       std::string subtitle = text;
