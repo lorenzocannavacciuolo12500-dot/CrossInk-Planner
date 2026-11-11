@@ -1016,9 +1016,10 @@ void BaseTheme::drawDisplayStatusBar(const GfxRenderer& renderer, const int topY
     barSettings.slots[1] = ReaderStatusBarItem::Empty;
   }
   if (PlannerPageDots::clockOnlyStatusBar()) {
-    for (auto& slot : barSettings.slots) {
-      if (slot != ReaderStatusBarItem::Clock && slot != ReaderStatusBarItem::Date) slot = ReaderStatusBarItem::Empty;
-    }
+    std::replace_if(
+        barSettings.slots.begin(), barSettings.slots.end(),
+        [](const ReaderStatusBarItem slot) { return slot != ReaderStatusBarItem::Clock && slot != ReaderStatusBarItem::Date; },
+        ReaderStatusBarItem::Empty);
   }
   const auto config = barSettings.asReaderConfig();
   drawReaderStatusBar(renderer, ReaderStatusBarPosition::Top, content, &config);

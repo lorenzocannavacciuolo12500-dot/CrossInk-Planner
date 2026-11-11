@@ -83,7 +83,8 @@ void longDayLabel(const int32_t ymd, const int32_t todayYmd, char* buf, const si
   if (todayYmd != 0) {
     const int64_t delta = planner::ymdToDays(ymd) - planner::ymdToDays(todayYmd);
     if (delta == 0 || delta == 1) {
-      std::snprintf(buf, bufSize, "%s, %d %s", I18N.get(delta == 0 ? StrId::STR_PLANNER_TODAY : StrId::STR_PLANNER_TOMORROW), day, month);
+      std::snprintf(buf, bufSize, "%s, %d %s",
+                    I18N.get(delta == 0 ? StrId::STR_PLANNER_TODAY : StrId::STR_PLANNER_TOMORROW), day, month);
       return;
     }
   }
