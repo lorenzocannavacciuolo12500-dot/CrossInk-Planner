@@ -15,7 +15,7 @@ constexpr int kMargin = 28;
 constexpr int kTop = 40;
 constexpr int kGap = 10;
 
-// Breaks `text` on spaces so every line fits in `maxWidth`. A word longer than
+// Breaks `text` on spaces so every line fits in `maxWidth`. A token longer than
 // one line is cut by the renderer instead of overflowing.
 void wrap(const GfxRenderer& renderer, const int fontId, const char* text, const int maxWidth,
           const EpdFontFamily::Style style, std::vector<std::string>& out, const size_t maxLines) {
@@ -24,11 +24,11 @@ void wrap(const GfxRenderer& renderer, const int fontId, const char* text, const
   while (*cursor != '\0' && out.size() < maxLines) {
     const char* space = cursor;
     while (*space != '\0' && *space != ' ') space++;
-    std::string word(cursor, static_cast<size_t>(space - cursor));
-    const std::string candidate = line.empty() ? word : line + ' ' + word;
+    std::string token(cursor, static_cast<size_t>(space - cursor));
+    const std::string candidate = line.empty() ? token : line + ' ' + token;
     if (!line.empty() && renderer.getTextWidth(fontId, candidate.c_str(), style) > maxWidth) {
       out.push_back(line);
-      line = std::move(word);
+      line = std::move(token);
     } else {
       line = candidate;
     }
