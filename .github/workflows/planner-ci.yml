@@ -78,6 +78,9 @@ jobs:
       - name: Build default (Xteink X3/X4)
         id: default
         continue-on-error: true
+        env:
+          # Shows "Crossink-Planner 1.6.1" in Settings instead of "1.6.1-dev+<branch>".
+          CROSSINK_RELEASE_VERSION: "1.6.1"
         run: |
           set -o pipefail
           pio run -j2 -e default 2>&1 | tee ci-out/pio-default.log
