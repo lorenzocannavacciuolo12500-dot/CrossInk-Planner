@@ -17,6 +17,10 @@ const std::vector<SettingInfo>& getBaseSettingsList() {
                           "sleepScreenCoverFilter", StrId::STR_CAT_DISPLAY));
     add(SettingInfo::Toggle(StrId::STR_QUICK_RESUME_TIMEOUT, &CrossPointSettings::quickResumeSleepScreen,
                             "quickResumeSleepScreen", StrId::STR_CAT_DISPLAY));
+    add(SettingInfo::Enum(StrId::STR_PLANNER_AGENDA_TOMORROW_FROM, &CrossPointSettings::agendaTomorrowFrom,
+                          {StrId::STR_NEVER, StrId::STR_PLANNER_HOUR_18, StrId::STR_PLANNER_HOUR_19,
+                           StrId::STR_PLANNER_HOUR_20, StrId::STR_PLANNER_HOUR_21, StrId::STR_PLANNER_HOUR_22},
+                          "agendaTomorrowFrom", StrId::STR_CAT_DISPLAY));
     add(SettingInfo::Enum(StrId::STR_HIDE_BATTERY, &CrossPointSettings::hideBatteryPercentage,
                           {StrId::STR_NEVER, StrId::STR_IN_READER, StrId::STR_ALWAYS}, "hideBatteryPercentage",
                           StrId::STR_CAT_DISPLAY));

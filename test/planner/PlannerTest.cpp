@@ -37,8 +37,7 @@ std::string encode(const Calendar& cal) {
   return out;
 }
 
-template <typename T>
-bool decode(const std::string& json, T& out, size_t chunk = 7) {
+template <typename T> bool decode(const std::string& json, T& out, size_t chunk = 7) {
   PlannerJsonDecoder decoder(out);
   for (size_t i = 0; i < json.size(); i += chunk) {
     decoder.feed(json.data() + i, std::min(chunk, json.size() - i));
@@ -376,6 +375,57 @@ void testTodoLists() {
   list.items[4].listIndex = 9;
   const auto orphaned = visibleTodoSections(list);
   CHECK(orphaned[0].items.size() == 3);
+  list.items[4].listIndex = 1;
+}
+
+void testTodoLayout() {
+  // The app numbers every task by its place on its page: Bollette, then the
+  // list Spesa (Pane, Latte), then Dentista. Viti was added on the reader.
+  TodoList list;
+  list.storeId = "s1";
+  list.items.push_back(companionItem("a", "Latte", false, 100));
+  list.items.back().listIndex = internTodoList(list, "Spesa");
+  list.items.back().order = 3;
+  list.items.push_back(companionItem("b", "Pane", false, 100));
+  list.items.back().listIndex = internTodoList(list, "Spesa");
+  list.items.back().order = 2;
+  list.items.push_back(companionItem("c", "Dentista", false, 100));
+  list.items.back().order = 4;
+  list.items.push_back(companionItem("d", "Bollette", false, 100));
+  list.items.back().order = 1;
+  list.items.push_back(companionItem("e", "Viti", false, 100));
+
+  auto blocks = visibleTodoLayout(list);
+  CHECK(blocks.size() == 4);
+  CHECK(blocks[0].listIndex == kNoList && blocks[0].items.size() == 1 && blocks[0].items[0] == 3);
+  CHECK(blocks[1].listIndex == 0 && blocks[1].items.size() == 2 && blocks[1].items[0] == 1 && blocks[1].items[1] == 0);
+  CHECK(blocks[2].listIndex == kNoList && blocks[2].items[0] == 2);
+  CHECK(blocks[3].listIndex == kNoList && blocks[3].items[0] == 4);  // no place: last
+
+  // "Delete completed" keeps a list that still has open tasks...
+  list.items[0].done = true;  // Latte done, Pane open
+  list.items[3].done = true;  // Bollette done (no list)
+  CHECK(countDeletableCompletedTodos(list) == 1);
+  CHECK(deleteCompletedLocalTodos(list, 1000) == 1);
+  CHECK(list.items[3].deleted && !list.items[0].deleted);
+  // ...and removes the whole list once all its tasks are done.
+  list.items[1].done = true;
+  CHECK(countDeletableCompletedTodos(list) == 2);
+  CHECK(deleteCompletedLocalTodos(list, 1001) == 2);
+  CHECK(list.items[0].deleted && list.items[1].deleted);
+  blocks = visibleTodoLayout(list);
+  CHECK(blocks.size() == 2);
+
+  // Deleting a list removes its tasks, done or not.
+  TodoList other;
+  other.items.push_back(companionItem("x", "Uno", false, 100));
+  other.items.back().listIndex = internTodoList(other, "Casa");
+  other.items.push_back(companionItem("y", "Due", true, 100));
+  other.items.back().listIndex = internTodoList(other, "Casa");
+  other.items.push_back(companionItem("z", "Fuori", false, 100));
+  CHECK(deleteLocalTodoList(other, 0, 1000) == 2);
+  CHECK(other.items[0].deleted && other.items[1].deleted && !other.items[2].deleted);
+  CHECK(deleteLocalTodoList(other, 7, 1000) == 0);
 }
 
 }  // namespace
@@ -396,6 +446,7 @@ int main() {
   testCalendarRoundTrip();
   testCalendarLimit();
   testTodoLists();
+  testTodoLayout();
   testHashes();
   std::printf("planner tests: %d checks passed\n", checks);
   return 0;

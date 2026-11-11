@@ -528,17 +528,19 @@ void SleepActivity::onEnter() {
   // the exact last screen outside the planner pages.
   const bool lastScreenMode = SETTINGS.sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::QUICK_RESUME;
 
-  // CrossInk-Planner: a sleep nobody asked for (the inactivity timeout) shows
-  // the cover of the book being read, whatever screen was open. Falling asleep
-  // on the To-Do List or the Calendar therefore does not leave that page on
-  // the panel; pressing Power still honours the chosen sleep screen.
+  // CrossInk-Planner: a sleep nobody asked for (the inactivity timeout) leaves
+  // the last screen on the panel, whatever sleep screen is chosen; on a book
+  // page it shows that book's cover instead. Pressing Power still honours the
+  // chosen sleep screen.
   const std::string& openBookPath = currentBookPath.empty() ? APP_STATE.openEpubPath : currentBookPath;
-  const bool coverOnTimeout = fromTimeout && !openBookPath.empty();
+  const bool inBook = APP_STATE.lastSleepFromReader && !openBookPath.empty();
+  const bool coverOnTimeout = fromTimeout && inBook;
+  const bool lastOnTimeout = fromTimeout && !inBook;
 
   // Always consume the flag, or a frame prepared now would be reused later.
   const bool plannerFrameReady = PlannerListActivity::takeSleepFrame();
-  const bool plannerFrame = renderQuickResume && !coverOnTimeout && plannerFrameReady;
-  const bool keepFrame = plannerFrame || (renderQuickResume && !lastScreenMode && !coverOnTimeout);
+  const bool plannerFrame = (renderQuickResume || lastOnTimeout) && !coverOnTimeout && plannerFrameReady;
+  const bool keepFrame = plannerFrame || lastOnTimeout || (renderQuickResume && !lastScreenMode && !coverOnTimeout);
 
   // Sleep screens draw directly, outside ActivityManager's normal render path.
   // A retained screen keeps its Night Mode output; generated sleep screens
@@ -620,10 +622,9 @@ bool SleepActivity::rendersBeforeExit() const {
   // Keep the reader's cleanup first on devices without PSRAM. Covers and custom
   // images can otherwise compete with the reader for scarce internal memory.
   if (!psramHeapAvailable()) return false;
-  if (fromTimeout &&
-      SETTINGS.quickResumeSleepScreen == CrossPointSettings::QUICK_RESUME_SLEEP_SCREEN::QUICK_RESUME_AFTER_TIMEOUT) {
-    return false;
-  }
+  // CrossInk-Planner: the timeout keeps the last screen (or shows the cover),
+  // like Quick Resume after timeout.
+  if (fromTimeout) return false;
   switch (SETTINGS.sleepScreen) {
     case CrossPointSettings::SLEEP_SCREEN_MODE::DARK:
     case CrossPointSettings::SLEEP_SCREEN_MODE::LIGHT:

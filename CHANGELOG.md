@@ -13,13 +13,17 @@
 - "Agenda" sleep screen: today's date, today's events and the open tasks.
 - The Calendar page is laid out like the companion app: a heading per day with its event count, then each event's title with time, place and calendar below.
 
-- To-Do List: tasks are grouped like the companion app, the ones in no list first and then one block per list. The
-  list's name is a row of its own: Confirm on it folds the list away until the reader restarts.
+- To-Do List: laid out like the companion app, with tasks in no list and whole lists in the order arranged there. A
+  list's name is a row of its own with "Open" / "Close" under it: Confirm folds the list away until the reader
+  restarts, holding Confirm asks "Delete this list?". The list's tasks are set in under its name.
+- "Agenda" sleep screen: from 20:00 it also lists tomorrow's events, under today's (or under "No events today"). The
+  hour is set in Settings > Display > "Agenda: tomorrow from" (18:00-22:00, or Never). Tasks are shown by list: the
+  list's name without a box, its open tasks set in below it.
 
 - Calendar: Confirm on an event opens it on its own screen, where a long title or place is shown in full instead of
   being cut to one line.
-- Going to sleep on the inactivity timeout shows the cover of the book being read, whatever screen was open, so the
-  To-Do List or Calendar is not left on the panel. Pressing Power still uses the chosen sleep screen.
+- Going to sleep on the inactivity timeout keeps the last screen on the panel, whatever sleep screen is chosen; on a
+  book page it shows that book's cover. Pressing Power still uses the chosen sleep screen.
 
 ### Fixed
 
@@ -31,7 +35,9 @@
 - The firmware calls itself "Crossink-Planner 1.6.1" (Settings, About).
 - To-Do List: tasks stay in the order they were made in (or the one chosen in the app); checking one leaves it where
   it is, marked done. There are no due dates and no task counts on the page any more, and holding Confirm no longer
-  deletes a task: the "Delete completed" row removes the checked ones.
+  deletes a task: the "Delete completed" row removes the checked tasks in no list and the lists whose tasks are all
+  checked (a list with open tasks stays).
+- "Agenda" sleep screen: "No tasks" instead of "All done" when there is nothing to do.
 - Calendar: the day headings no longer show how many events the day has.
 - The "Quick Resume" sleep screen is now called "Last Screen". On the To-Do List and Calendar it keeps the page without page dots, battery, sync status, selection, "+ Add task" and button hints; on Home and in the reader it shows the book cover, like the Cover mode.
 - On Home, To-Do List and Calendar the page dots sit in the centre of the status bar; an item configured there (such as the clock) moves to the left.

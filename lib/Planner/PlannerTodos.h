@@ -22,8 +22,14 @@ std::string makeDeviceTodoId(const std::string& storeId, uint32_t revision, uint
 bool addLocalTodo(TodoList& list, std::string title, int32_t due, int64_t now, uint32_t randomValue);
 bool setLocalTodoDone(TodoList& list, size_t index, bool done, int64_t now);
 bool deleteLocalTodo(TodoList& list, size_t index, int64_t now);
-// Deletes every visible completed task; returns how many were deleted.
+// "Delete completed": removes the completed tasks in no list, and the tasks of
+// every list whose tasks are all completed (a list with open tasks is left as
+// it is). Returns how many were deleted.
 size_t deleteCompletedLocalTodos(TodoList& list, int64_t now);
+// How many tasks deleteCompletedLocalTodos would remove.
+size_t countDeletableCompletedTodos(const TodoList& list);
+// Deletes every task of one list (the list goes with them). Returns the count.
+size_t deleteLocalTodoList(TodoList& list, uint8_t listIndex, int64_t now);
 
 size_t countOpenTodos(const TodoList& list);
 
@@ -42,6 +48,15 @@ struct TodoSection {
 // companion app's positions when it sent any, otherwise the order the tasks
 // were made in. Completed tasks keep their place.
 std::vector<TodoSection> visibleTodoSections(const TodoList& list);
+
+// One block of the To-Do page as arranged in the companion app: a task in no
+// list (listIndex kNoList, one item) or a whole list with its tasks. Blocks
+// follow the tasks' `order`; tasks without one (added on the reader) come last.
+struct TodoBlock {
+  uint8_t listIndex = kNoList;
+  std::vector<uint16_t> items;
+};
+std::vector<TodoBlock> visibleTodoLayout(const TodoList& list);
 
 // Index of `name` in `lists`, adding it when it is new. Returns kNoList for an
 // empty name or when there is no room left.

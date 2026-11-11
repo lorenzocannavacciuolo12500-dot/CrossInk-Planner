@@ -691,6 +691,10 @@ class CrossPointSettings : public PersistableStore<CrossPointSettings> {
   char deviceName[21] = "";
   // Quick Resume: keep current content visible with moon icon instead of showing a static sleep screen.
   uint8_t quickResumeSleepScreen = QUICK_RESUME_NEVER;
+  // CrossInk-Planner: from this hour the Agenda sleep screen also lists
+  // tomorrow's events. 0 = never, 1..5 = 18:00..22:00 (default 20:00).
+  uint8_t agendaTomorrowFrom = 3;
+  static constexpr int agendaTomorrowHour(const uint8_t value) { return value == 0 || value > 5 ? -1 : 17 + value; }
   // Master switch for automatic reading statistics; Time Left pace remains independent.
   uint8_t trackReadingStats = 1;
 

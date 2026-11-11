@@ -9,12 +9,14 @@
 #include "PlannerListActivity.h"
 
 /**
- * To-Do List. Tasks are grouped like the companion app: the ones in no list
- * first, then one block per list with its name as a row. Confirm on a list name
- * folds that list away (kept until the reader restarts).
+ * To-Do List, laid out like the companion app: tasks in no list and whole
+ * lists, in the order arranged there; a list's tasks are set in under its name.
+ * Confirm on a list name folds that list away (kept until the reader
+ * restarts); holding Confirm there offers to delete the whole list.
  *
  * Confirm checks a task on or off; a checked task keeps its place. The
- * "Delete completed" row removes the checked ones.
+ * "Delete completed" row removes the checked tasks in no list and the lists
+ * whose tasks are all checked.
  * The Previous Page side button (left edge on the X3) goes back to Home.
  * The last rows add a task (on-screen keyboard) and clear completed tasks.
  * Every change is written to todos.json right away; the companion app syncs it
@@ -36,6 +38,8 @@ class TodoListActivity final : public PlannerListActivity {
   void onSideButton(bool next) override;
   void reloadData() override { reload(); }
   bool isActionRow(const int index) const override { return index >= addRowIndex(); }
+  // Holding Confirm on a list's name offers to delete the list.
+  bool supportsLongPress() const override { return true; }
   bool pageDot(PlannerPageDots::Page& page) const override {
     page = PlannerPageDots::Page::Todo;
     return true;
@@ -65,4 +69,5 @@ class TodoListActivity final : public PlannerListActivity {
   int deleteCompletedRowIndex() const { return completedCount > 0 ? addRowIndex() + 1 : -1; }
   void openAddTask();
   void confirmDeleteCompleted();
+  void confirmDeleteList(uint8_t listIndex);
 };

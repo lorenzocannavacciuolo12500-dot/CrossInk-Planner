@@ -60,10 +60,18 @@ Both files are rewritten atomically (`.tmp` then rename, `.bak` kept until the
 replacement succeeds). Deleting the folder resets the Planner.
 
 Each task also carries `list` (the name of the list it belongs to, empty for none)
-and `order` (the position chosen by hand in the companion app, 0 for none). The
-reader keeps at most 12 list names of 40 bytes; names no task points at any more
-are forgotten at the next sync. Inside a block the reader follows `order` when the
-app sent any, otherwise the order the tasks were made in; completed tasks keep their place.
+and `order` (its place on the companion app's To-Do page, 0 for none). The app
+numbers every task from the top of its page, a list's tasks one after the other
+where the list sits, so sorting by `order` rebuilds the page: a task in no list is
+a row of its own and a list appears where its first task is. Tasks with no place
+(added on the reader) come last. The reader never changes `list` or `order`; the
+app keeps its own values for the tasks it knows. The reader keeps at most 12 list
+names of 40 bytes; names no task points at any more are forgotten at the next sync.
+
+"Delete completed" on the reader removes the completed tasks in no list and every
+list whose tasks are all completed; a list with open tasks is left as it is.
+Holding Confirm on a list's name deletes the whole list. Both reach the app as
+deleted tasks; the app then drops a list whose tasks were all deleted on the reader.
 
 ### `todos.json`
 

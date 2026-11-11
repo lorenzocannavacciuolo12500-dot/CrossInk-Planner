@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "CrossPointSettings.h"
 #include "PlannerFormat.h"
 #include "PlannerStore.h"
 #include "components/UiAppHelpers.h"
@@ -27,6 +28,7 @@ constexpr int kBottom = 24;
 constexpr int kSectionGap = 22;
 constexpr int kRowGap = 8;
 constexpr int kIconGap = 10;
+constexpr int kListIndent = 26;  // tasks of a list, set in under its name
 
 // One line of text, truncated to `maxWidth`; returns the next free y.
 int drawLine(const GfxRenderer& renderer, const int fontId, const int x, const int y, const char* text,
@@ -55,6 +57,39 @@ bool coversDay(const planner::CalendarEvent& ev, const int32_t day) {
   const int32_t lastDay =
       (ev.endDate > ev.startDate && ev.endMin == 0 && !ev.allDay) ? planner::addDays(ev.endDate, -1) : ev.endDate;
   return ev.startDate <= day && day <= lastDay;
+}
+
+// The events of one day, as "time  title" lines that stop above `limit`
+// (with "+N more" for the rest); `emptyText` when there are none.
+int drawDayEvents(const GfxRenderer& renderer, const planner::Calendar& calendar, const int32_t day, int y,
+                  const int limit, const int width, const char* emptyText) {
+  const int bodyLine = renderer.getLineHeight(UI_10_FONT_ID) + kRowGap;
+  // Time column sized from the widest time text ("22:00-23:30"), so ranges
+  // are not truncated whatever the font metrics.
+  const int timeColumn = renderer.getTextWidth(UI_10_FONT_ID, "00:00-00:00") + 2 * kIconGap;
+  size_t shown = 0;
+  size_t total = 0;
+  for (const auto& ev : calendar.events) {
+    if (day == 0 || !coversDay(ev, day)) continue;
+    total++;
+    // Keep one line free for "+N more" unless this is the last event.
+    if (y + 2 * bodyLine > limit) continue;
+    char time[24];
+    PlannerFormat::eventTime(ev, day, time, sizeof(time));
+    drawLine(renderer, UI_10_FONT_ID, kMargin, y, time, timeColumn - kIconGap);
+    y = drawLine(renderer, UI_10_FONT_ID, kMargin + timeColumn, y, ev.title.c_str(), width - timeColumn) + kRowGap;
+    shown++;
+  }
+  if (total == 0) y = drawLine(renderer, UI_10_FONT_ID, kMargin, y, emptyText, width) + kRowGap;
+  return drawMore(renderer, y, total - shown, width);
+}
+
+// After the hour chosen in Settings the evening agenda looks at tomorrow too.
+bool showTomorrow() {
+  const int hour = CrossPointSettings::agendaTomorrowHour(SETTINGS.agendaTomorrowFrom);
+  if (hour < 0) return false;
+  const int minute = PlannerFormat::minuteOfDay();
+  return minute >= hour * 60;
 }
 }  // namespace
 
@@ -88,26 +123,16 @@ void draw(const GfxRenderer& renderer) {
     // Events get at most half of the remaining height; tasks get the rest.
     y = drawSectionTitle(renderer, y, tr(STR_PLANNER_TODAY), width);
     const int eventsBottom = y + (footerTop - y) / 2;
-    // Time column sized from the widest time text ("22:00-23:30"), so ranges
-    // are not truncated whatever the font metrics.
-    const int timeColumn = renderer.getTextWidth(UI_10_FONT_ID, "00:00-00:00") + 2 * kIconGap;
-    size_t shown = 0;
-    size_t total = 0;
-    for (const auto& ev : calendar.events) {
-      if (today == 0 || !coversDay(ev, today)) continue;
-      total++;
-      // Keep one line free for "+N more" unless this is the last event.
-      if (y + 2 * bodyLine > eventsBottom) continue;
-      char time[24];
-      PlannerFormat::eventTime(ev, today, time, sizeof(time));
-      drawLine(renderer, UI_10_FONT_ID, kMargin, y, time, timeColumn - kIconGap);
-      y = drawLine(renderer, UI_10_FONT_ID, kMargin + timeColumn, y, ev.title.c_str(), width - timeColumn) + kRowGap;
-      shown++;
+    const bool tomorrow = today != 0 && showTomorrow();
+    // With tomorrow below, today leaves room for its heading and one line.
+    const int todayBottom = tomorrow ? eventsBottom - 2 * bodyLine : eventsBottom;
+    y = drawDayEvents(renderer, calendar, today, y, todayBottom, width, tr(STR_PLANNER_AGENDA_NO_EVENTS));
+    if (tomorrow) {
+      y += kRowGap;
+      y = drawLine(renderer, UI_10_FONT_ID, kMargin, y, tr(STR_PLANNER_TOMORROW), width, EpdFontFamily::BOLD) + kRowGap;
+      y = drawDayEvents(renderer, calendar, planner::addDays(today, 1), y, eventsBottom + bodyLine, width,
+                        tr(STR_PLANNER_AGENDA_NO_EVENTS_TOMORROW));
     }
-    if (total == 0) {
-      y = drawLine(renderer, UI_10_FONT_ID, kMargin, y, tr(STR_PLANNER_AGENDA_NO_EVENTS), width) + kRowGap;
-    }
-    y = drawMore(renderer, y, total - shown, width);
   }
   y += kSectionGap;
 
@@ -119,24 +144,53 @@ void draw(const GfxRenderer& renderer) {
     }
     y = drawSectionTitle(renderer, y, tr(STR_PLANNER_TODO), width);
     const auto& icon = icon_planner_checkbox_empty_24;
-    const int rowHeight = std::max(static_cast<int>(icon.h), renderer.getLineHeight(UI_10_FONT_ID)) + kRowGap;
-    const int textX = kMargin + icon.w + kIconGap;
-    const std::vector<uint16_t> order = planner::visibleTodoOrder(todos);
-    size_t open = 0;
-    size_t shown = 0;
-    for (const uint16_t index : order) {
-      const auto& task = todos.items[index];
-      if (task.done) break;  // open tasks come first
-      open++;
-      if (y + 2 * rowHeight > footerTop) continue;
-      const int textY = y + (rowHeight - kRowGap - renderer.getLineHeight(UI_10_FONT_ID)) / 2;
-      drawLucideIcon(renderer, icon, kMargin, y + (rowHeight - kRowGap - icon.h) / 2);
+    const int lineHeight = renderer.getLineHeight(UI_10_FONT_ID);
+    const int rowHeight = std::max(static_cast<int>(icon.h), lineHeight) + kRowGap;
+    // A task at `x`: checkbox, then its title.
+    const auto drawTask = [&](const planner::TodoItem& task, const int x) {
+      const int textX = x + icon.w + kIconGap;
+      const int textY = y + (rowHeight - kRowGap - lineHeight) / 2;
+      drawLucideIcon(renderer, icon, x, y + (rowHeight - kRowGap - icon.h) / 2);
       drawLine(renderer, UI_10_FONT_ID, textX, textY, task.title.c_str(), width - (textX - kMargin));
       y += rowHeight;
-      shown++;
+    };
+    // Like the To-Do page: tasks in no list and whole lists, in the companion
+    // app's order. A list's name has no box; its open tasks sit under it, set
+    // in a little; a task after the list lines up with the name again.
+    size_t open = 0;
+    size_t shown = 0;
+    bool full = false;  // once something did not fit, the rest is "+N more"
+    for (const auto& block : planner::visibleTodoLayout(todos)) {
+      const bool isList = block.listIndex != planner::kNoList;
+      const size_t openHere = static_cast<size_t>(std::count_if(
+          block.items.begin(), block.items.end(), [&todos](const uint16_t i) { return !todos.items[i].done; }));
+      if (openHere == 0) continue;
+      open += openHere;
+      // Keep one row free for "+N more"; a list needs its name and one task.
+      const int needed = (isList ? rowHeight : 0) + 2 * rowHeight;
+      if (full || y + needed > footerTop) {
+        full = true;
+        continue;
+      }
+      if (isList) {
+        const int textY = y + (rowHeight - kRowGap - lineHeight) / 2;
+        drawLine(renderer, UI_10_FONT_ID, kMargin, textY, todos.lists[block.listIndex].c_str(), width,
+                 EpdFontFamily::BOLD);
+        y += rowHeight;
+      }
+      for (const uint16_t index : block.items) {
+        const auto& task = todos.items[index];
+        if (task.done) continue;
+        if (full || y + 2 * rowHeight > footerTop) {
+          full = true;
+          continue;
+        }
+        drawTask(task, isList ? kMargin + kListIndent : kMargin);
+        shown++;
+      }
     }
     if (open == 0) {
-      y = drawLine(renderer, UI_10_FONT_ID, kMargin, y, tr(STR_PLANNER_ALL_DONE), width) + kRowGap;
+      y = drawLine(renderer, UI_10_FONT_ID, kMargin, y, tr(STR_PLANNER_AGENDA_NO_TODOS), width) + kRowGap;
     }
     drawMore(renderer, y, open - shown, width);
   }

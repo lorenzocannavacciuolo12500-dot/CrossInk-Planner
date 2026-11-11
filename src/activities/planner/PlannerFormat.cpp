@@ -31,6 +31,14 @@ int32_t today() {
   return planner::localYmdFromUtc(static_cast<int64_t>(now), offsetMinutes());
 }
 
+int minuteOfDay() {
+  time_t now = 0;
+  if (!planner_platform::getUnixTime(now)) return -1;
+  int minute = -1;
+  planner::localYmdFromUtc(static_cast<int64_t>(now), offsetMinutes(), &minute);
+  return minute;
+}
+
 void dayLabel(const int32_t ymd, const int32_t todayYmd, char* buf, const size_t bufSize) {
   if (bufSize == 0) return;
   if (!planner::isValidYmd(ymd)) {

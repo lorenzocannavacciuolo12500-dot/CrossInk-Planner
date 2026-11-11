@@ -74,19 +74,20 @@ void TodoListActivity::toggleCollapsed(const uint8_t listIndex) {
 
 void TodoListActivity::refreshDerived() {
   rows.clear();
-  size_t visible = 0;
-  for (const auto& section : planner::visibleTodoSections(list)) {
-    visible += section.items.size();
-    if (section.listIndex != planner::kNoList) {
-      if (section.items.empty()) continue;  // an empty list is not worth a row
-      rows.push_back(Row{0, section.listIndex, true});
-      if (isCollapsed(section.listIndex)) continue;
+  // Same page as the companion app: tasks in no list and whole lists, in the
+  // order arranged there; a list's tasks sit under its name, set in a little.
+  for (const auto& block : planner::visibleTodoLayout(list)) {
+    if (block.listIndex == planner::kNoList) {
+      rows.push_back(Row{block.items.front(), planner::kNoList, false});
+      continue;
     }
-    const uint8_t listIndex = section.listIndex;
-    std::transform(section.items.begin(), section.items.end(), std::back_inserter(rows),
+    rows.push_back(Row{0, block.listIndex, true});
+    if (isCollapsed(block.listIndex)) continue;
+    const uint8_t listIndex = block.listIndex;
+    std::transform(block.items.begin(), block.items.end(), std::back_inserter(rows),
                    [listIndex](const uint16_t item) { return Row{item, listIndex, false}; });
   }
-  completedCount = visible - planner::countOpenTodos(list);
+  completedCount = planner::countDeletableCompletedTodos(list);
 }
 
 void TodoListActivity::persist() {
@@ -120,13 +121,14 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
 
   for (const Row& row : rows) {
     if (row.heading) {
-      // A folded list says so; no task counts on the To-Do page.
-      subtitles.push_back(isCollapsed(row.listIndex) ? std::string(tr(STR_PLANNER_LIST_CLOSED)) : std::string());
+      // Under the name: what Confirm does to the list (no task counts).
+      subtitles.push_back(isCollapsed(row.listIndex) ? std::string(tr(STR_PLANNER_LIST_OPEN))
+                                                     : std::string(tr(STR_PLANNER_LIST_CLOSE)));
       headings.push_back(list.lists[row.listIndex]);
 
       fui::ListItem heading;
       heading.label = headings.back().c_str();
-      heading.subtitle = subtitles.back().empty() ? nullptr : subtitles.back().c_str();
+      heading.subtitle = subtitles.back().c_str();
       items.push_back(heading);
       continue;
     }
@@ -140,8 +142,13 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
     fui::ListItem entry;
     entry.label = task.title.c_str();
     entry.subtitle = subtitles.back().empty() ? nullptr : subtitles.back().c_str();
-    // Square checkbox in front of the title, filled with a check mark when done.
-    entry.icon = fui::bitmapFromIcon(task.done ? icon_planner_checkbox_checked_32 : icon_planner_checkbox_empty_32);
+    // Square checkbox in front of the title, filled with a check mark when
+    // done; inside a list the box is set in from the list's name.
+    const bool nested = row.listIndex != planner::kNoList;
+    const freeink::Icon& box =
+        task.done ? (nested ? icon_planner_checkbox_checked_indented_32 : icon_planner_checkbox_checked_32)
+                  : (nested ? icon_planner_checkbox_empty_indented_32 : icon_planner_checkbox_empty_32);
+    entry.icon = fui::bitmapFromIcon(box);
     items.push_back(entry);
   }
 
@@ -161,15 +168,18 @@ void TodoListActivity::activate(const int index, const bool longPress) {
   if (index >= 0 && index < addRowIndex()) {
     const Row& row = rows[static_cast<size_t>(index)];
     if (row.heading) {
-      if (longPress) return;
+      if (longPress) {
+        confirmDeleteList(row.listIndex);
+        return;
+      }
       toggleCollapsed(row.listIndex);
       refreshDerived();
       clampSelection();
       requestUpdate();
       return;
     }
+    // Holding Confirm on a task is just a slow press.
     const size_t itemIndex = row.item;
-    if (longPress) return;
     const bool done = !list.items[itemIndex].done;
     if (planner::setLocalTodoDone(list, itemIndex, done, PlannerStore::nowForEdits())) {
       // The task keeps its place and the cursor stays on it.
@@ -178,7 +188,6 @@ void TodoListActivity::activate(const int index, const bool longPress) {
     }
     return;
   }
-  if (longPress) return;
   if (index == addRowIndex()) {
     openAddTask();
   } else if (index == deleteCompletedRowIndex()) {
@@ -220,6 +229,26 @@ void TodoListActivity::confirmDeleteCompleted() {
   startActivityForResult(std::move(confirmation), [this](const ActivityResult& result) {
     if (result.isCancelled) return;
     if (planner::deleteCompletedLocalTodos(list, PlannerStore::nowForEdits()) > 0) persist();
+  });
+}
+
+void TodoListActivity::confirmDeleteList(const uint8_t listIndex) {
+  if (listIndex >= list.lists.size()) return;
+  // Opened while Confirm is still held: its release must not answer the popup.
+  auto confirmation =
+      makeUniqueNoThrow<ConfirmationActivity>(renderer, mappedInput, tr(STR_PLANNER_DELETE_LIST_CONFIRM), "", true);
+  if (!confirmation) {
+    LOG_ERR("PLN", "OOM: delete list confirmation");
+    return;
+  }
+  const std::string name = list.lists[listIndex];
+  startActivityForResult(std::move(confirmation), [this, name](const ActivityResult& result) {
+    if (result.isCancelled) return;
+    // Look the list up again by name: the table may have changed meanwhile.
+    const auto at = std::find(list.lists.begin(), list.lists.end(), name);
+    if (at == list.lists.end()) return;
+    const auto index = static_cast<uint8_t>(std::distance(list.lists.begin(), at));
+    if (planner::deleteLocalTodoList(list, index, PlannerStore::nowForEdits()) > 0) persist();
   });
 }
 

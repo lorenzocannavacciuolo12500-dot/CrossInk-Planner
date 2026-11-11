@@ -1103,8 +1103,9 @@ void enterDeepSleep(bool fromTimeout) {
   APP_STATE.showBootScreen = false;
 
   // "Last screen" on a planner page: redraw it without the live-only parts
-  // while the page still exists (goToSleep() destroys it).
-  if (isQuickResumeSleep) PlannerListActivity::prepareSleepFrame();
+  // while the page still exists (goToSleep() destroys it). The inactivity
+  // timeout always keeps the last screen (see SleepActivity::onEnter()).
+  if (isQuickResumeSleep || fromTimeout) PlannerListActivity::prepareSleepFrame();
 
   // Commit to sleeping before goToSleep() runs the outgoing activity's onExit():
   // a WiFi activity would otherwise silentRestart() here and reboot instead.

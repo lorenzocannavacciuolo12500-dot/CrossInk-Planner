@@ -95,10 +95,43 @@ bool deleteLocalTodo(TodoList& list, const size_t index, const int64_t now) {
   return true;
 }
 
+namespace {
+// A completed task "Delete completed" may remove: one in no list, or one in a
+// list whose tasks are all completed (the list then goes with them).
+std::vector<bool> completedToDelete(const TodoList& list) {
+  std::vector<bool> listHasOpen(list.lists.size(), false);
+  for (const auto& item : list.items) {
+    if (!item.deleted && !item.done && item.listIndex < list.lists.size()) listHasOpen[item.listIndex] = true;
+  }
+  std::vector<bool> result(list.items.size(), false);
+  for (size_t i = 0; i < list.items.size(); i++) {
+    const TodoItem& item = list.items[i];
+    if (item.deleted || !item.done) continue;
+    result[i] = item.listIndex >= list.lists.size() || !listHasOpen[item.listIndex];
+  }
+  return result;
+}
+}  // namespace
+
+size_t countDeletableCompletedTodos(const TodoList& list) {
+  const std::vector<bool> marked = completedToDelete(list);
+  return static_cast<size_t>(std::count(marked.begin(), marked.end(), true));
+}
+
 size_t deleteCompletedLocalTodos(TodoList& list, const int64_t now) {
+  const std::vector<bool> marked = completedToDelete(list);
   size_t count = 0;
   for (size_t i = 0; i < list.items.size(); i++) {
-    if (list.items[i].done && !list.items[i].deleted && deleteLocalTodo(list, i, now)) count++;
+    if (marked[i] && deleteLocalTodo(list, i, now)) count++;
+  }
+  return count;
+}
+
+size_t deleteLocalTodoList(TodoList& list, const uint8_t listIndex, const int64_t now) {
+  if (listIndex >= list.lists.size()) return 0;
+  size_t count = 0;
+  for (size_t i = 0; i < list.items.size(); i++) {
+    if (list.items[i].listIndex == listIndex && deleteLocalTodo(list, i, now)) count++;
   }
   return count;
 }
@@ -139,6 +172,40 @@ uint8_t internListName(std::vector<std::string>& lists, std::string name) {
   if (lists.size() >= kMaxLists) return kNoList;
   lists.push_back(std::move(name));
   return static_cast<uint8_t>(lists.size() - 1);
+}
+
+std::vector<TodoBlock> visibleTodoLayout(const TodoList& list) {
+  std::vector<uint16_t> order;
+  order.reserve(list.items.size());
+  for (size_t i = 0; i < list.items.size(); i++) {
+    if (!list.items[i].deleted) order.push_back(static_cast<uint16_t>(i));
+  }
+  // The companion numbers every task by its place on its page; tasks without
+  // a place (added here) follow, in the order they were made.
+  std::stable_sort(order.begin(), order.end(), [&list](const uint16_t a, const uint16_t b) {
+    const uint32_t pa = list.items[a].order == 0 ? UINT32_MAX : list.items[a].order;
+    const uint32_t pb = list.items[b].order == 0 ? UINT32_MAX : list.items[b].order;
+    return pa < pb;
+  });
+
+  std::vector<TodoBlock> blocks;
+  blocks.reserve(order.size());
+  std::vector<int16_t> blockOfList(list.lists.size(), -1);
+  for (const uint16_t idx : order) {
+    const uint8_t listIndex = list.items[idx].listIndex;
+    if (listIndex >= list.lists.size()) {
+      blocks.push_back(TodoBlock{kNoList, {idx}});
+      continue;
+    }
+    int16_t& at = blockOfList[listIndex];
+    if (at < 0) {
+      // A list sits where its first task is.
+      at = static_cast<int16_t>(blocks.size());
+      blocks.push_back(TodoBlock{listIndex, {}});
+    }
+    blocks[static_cast<size_t>(at)].items.push_back(idx);
+  }
+  return blocks;
 }
 
 std::vector<TodoSection> visibleTodoSections(const TodoList& list) {

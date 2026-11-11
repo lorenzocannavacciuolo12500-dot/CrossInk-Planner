@@ -56,14 +56,25 @@ def to_mask1(img: Image.Image) -> list[int]:
     return out
 
 
-def emit(name: str, size: int, data: list[int]) -> str:
+INDENT = 16  # list tasks: the box moves right by this much (icon becomes 48x32)
+
+
+def indented(img: Image.Image) -> Image.Image:
+    w, h = img.size
+    out = Image.new("L", (w + INDENT, h), 255)
+    out.paste(img, (INDENT, 0))
+    return out
+
+
+def emit(name: str, size: int, data: list[int], width: int | None = None) -> str:
+    width = width or size
     rows = []
     for i in range(0, len(data), 18):
         rows.append("    " + ", ".join(f"0x{b:02X}" for b in data[i : i + 18]))
     body = ",\n".join(rows)
     return (
         f"static const uint8_t {name}_bits[] = {{\n{body}}};\n"
-        f"static const freeink::Icon {name} = {{{size}, {size}, {size // 2}, {name}_bits}};\n"
+        f"static const freeink::Icon {name} = {{{width}, {size}, {size // 2}, {name}_bits}};\n"
     )
 
 
@@ -77,6 +88,10 @@ def main() -> None:
         for checked in (False, True):
             name = f"icon_planner_checkbox_{'checked' if checked else 'empty'}_{size}"
             parts.append(emit(name, size, to_mask1(render(size, checked))))
+    # Tasks inside a list: same box, set in from the list's name.
+    for checked in (False, True):
+        name = f"icon_planner_checkbox_{'checked' if checked else 'empty'}_indented_32"
+        parts.append(emit(name, 32, to_mask1(indented(render(32, checked))), width=32 + INDENT))
     OUT.write_text("".join(parts))
     print(f"wrote {OUT.relative_to(ROOT)}")
     # ASCII preview for review
