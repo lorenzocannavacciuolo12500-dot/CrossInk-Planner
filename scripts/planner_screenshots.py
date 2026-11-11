@@ -83,7 +83,7 @@ def write_sd(sd: Path, today: dt.date, now_utc: int, offset_min: int) -> None:
     }
     (planner / "calendar.json").write_text(json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
 
-    settings = {"language": "IT"}
+    settings = {"language": "IT", "sleepScreen": 12}  # 12 = Agenda sleep screen
     (sd / ".crosspoint" / "crossink-settings.json").write_text(json.dumps(settings), encoding="utf-8")
 
 
@@ -114,8 +114,10 @@ def main() -> int:
     today = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=offset_min)).date()
 
     # Calendar <- Home -> To-Do List with the side buttons (UP / DOWN).
-    script = args.script or "4000:DOWN;7000:UP;10000:UP;13000:UP;14500:QUIT"
-    shots = args.shots or "3500:home;6500:todo;9500:home-again;12500:calendar"
+    # Then the Agenda entry of the Home menu (third item) and the Agenda sleep screen.
+    script = args.script or ("4000:DOWN;7000:UP;10000:UP;13000:DOWN;14500:RIGHT;15200:RIGHT;"
+                             "16000:ENTER;19000:BACK;20500:SLEEP;25000:QUIT")
+    shots = args.shots or "3500:home;6500:todo;12500:calendar;15800:home-menu;18500:agenda;24000:sleep"
 
     with tempfile.TemporaryDirectory(prefix="planner-shots-") as tmp_name:
         tmp = Path(tmp_name)
@@ -129,10 +131,17 @@ def main() -> int:
         env["CROSSPOINT_SIM_SD"] = str(sd)
         env["CROSSPOINT_SIM_INPUT_SCRIPT"] = script
         env["CROSSPOINT_SIM_SCREENSHOTS"] = schedule
-        proc = subprocess.run([str(program)], cwd=tmp, env=env, timeout=120,
-                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace")
-        (out / "simulator.log").write_text(proc.stdout, encoding="utf-8")
-        print(proc.stdout[-4000:])
+        # A key on the sleep screen relaunches the simulator: quit right away.
+        env["CROSSPOINT_SIM_INPUT_SCRIPT_AFTER_WAKE"] = "1500:QUIT"
+        try:
+            proc = subprocess.run([str(program)], cwd=tmp, env=env, timeout=90,
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace")
+            log = proc.stdout
+        except subprocess.TimeoutExpired as exc:
+            log = (exc.stdout or b"").decode("utf-8", "replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+            log += "\n[planner_screenshots] simulator timed out\n"
+        (out / "simulator.log").write_text(log, encoding="utf-8")
+        print(log[-4000:])
 
         saved = 0
         for bmp in sorted(raw.glob("*.bmp")):
