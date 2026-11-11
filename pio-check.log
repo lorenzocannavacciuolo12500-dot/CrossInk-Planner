@@ -1,0 +1,9 @@
+Checking default > cppcheck (platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.37/platform-espressif32.zip; board: esp32-c3-devkitm-1; framework: arduino)
+--------------------------------------------------------------------------------
+No defects found
+========================= [PASSED] Took 129.28 seconds =========================
+
+Environment    Tool      Status    Duration
+-------------  --------  --------  ------------
+default        cppcheck  PASSED    00:02:09.281
+========================= 1 succeeded in 00:02:09.281 =========================
