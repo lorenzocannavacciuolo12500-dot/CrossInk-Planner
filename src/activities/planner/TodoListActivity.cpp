@@ -164,12 +164,12 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
     }
     subtitles.push_back(std::move(subtitle));
 
-    fui::ListItem row;
-    row.label = task.title.c_str();
-    row.subtitle = subtitles.back().empty() ? nullptr : subtitles.back().c_str();
+    fui::ListItem entry;
+    entry.label = task.title.c_str();
+    entry.subtitle = subtitles.back().empty() ? nullptr : subtitles.back().c_str();
     // Square checkbox in front of the title, filled with a check mark when done.
-    row.icon = fui::bitmapFromIcon(task.done ? icon_planner_checkbox_checked_32 : icon_planner_checkbox_empty_32);
-    items.push_back(row);
+    entry.icon = fui::bitmapFromIcon(task.done ? icon_planner_checkbox_checked_32 : icon_planner_checkbox_empty_32);
+    items.push_back(entry);
   }
 
   fui::ListItem add;
