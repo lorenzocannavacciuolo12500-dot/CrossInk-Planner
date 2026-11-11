@@ -1,0 +1,59 @@
+[0] [INF] [BOOT] Reset diagnostic: reset=0(UNKNOWN) sleepWake=0(UNDEFINED)
+[0] [INF] [MAIN] Hardware detect: X4
+[0] [INF] [BOOT] Post-GPIO diagnostic: device=X4 usb=1 silentReboot=0 silentTarget=0
+[0] [INF] [BOOT] Wake route: Other
+[0] [INF] [BOOT] Other wake route: continuing boot
+SIMRESOURCE mode=off calibrated=0 internal=1048576/1048576 largest=1048576 psram=0/0 largest=0
+[0] [DBG] [BOOTMEM] storage ready: free=1048576 maxAlloc=1048576
+[0] [DBG] [CPS] Settings loaded from file
+[0] [DBG] [CPS] Resaved settings to update format
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/dictionary.bin (flags=0x0 errno=2 No such file or directory)
+[1] [DBG] [UI] Using Lyra theme
+[1] [DBG] [BOOTMEM] boot state ready: free=1048576 maxAlloc=1048576
+[1] [DBG] [LIGHT] Frontlight boot state: off (silent=0)
+[1] [DBG] [MAIN] Starting CrossInk version 1.6.1
+[1] [INF] [MEM] Boot: heap free=1048576 total=1048576 min=1048576 maxAlloc=1048576
+[1385] [DBG] [ACT] Render task started with 16384-byte stack
+[1385] [DBG] [SDFS] SD font resolver ready; discovery deferred until requested
+[1385] [DBG] [BOOTMEM] display and font resolver ready: free=1048576 maxAlloc=1048576
+[1385] [DBG] [ACT] Entering activity: Boot
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.bootscreen (flags=0x0 errno=2 No such file or directory)
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/bootscreen (flags=0x0 errno=2 No such file or directory)
+[1388] [DBG] [ACT] Exiting activity: Boot
+[1388] [DBG] [ACT] Entering activity: Home
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/global_stats.bin (flags=0x0 errno=2 No such file or directory)
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/global_stats.bin.bak (flags=0x0 errno=2 No such file or directory)
+[1388] [DBG] [GSTATS] Global stats missing or corrupt, starting fresh
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/synced_stats (flags=0x0 errno=2 No such file or directory)
+[SIM] Saved screenshot: /tmp/planner-shots-wczmnaw8/raw/home.bmp
+[4082] [DBG] [ACT] Entering activity: PlannerTodo
+[4082] [INF] [WCS] load start
+[4082] [INF] [WCS] load no store
+[SIM] Saved screenshot: /tmp/planner-shots-wczmnaw8/raw/todo.bmp
+[7086] [DBG] [ACT] Exiting activity: PlannerTodo
+[7086] [DBG] [ACT] Exiting activity: Home
+[7086] [DBG] [ACT] Entering activity: Home
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/global_stats.bin (flags=0x0 errno=2 No such file or directory)
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/global_stats.bin.bak (flags=0x0 errno=2 No such file or directory)
+[7086] [DBG] [GSTATS] Global stats missing or corrupt, starting fresh
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/synced_stats (flags=0x0 errno=2 No such file or directory)
+[10009] [INF] [MEM] Periodic: heap free=1048576 total=1048576 min=1048576 maxAlloc=1048576
+[10087] [DBG] [ACT] Entering activity: PlannerCalendar
+[SIM] Saved screenshot: /tmp/planner-shots-wczmnaw8/raw/calendar.bmp
+[13081] [DBG] [ACT] Exiting activity: PlannerCalendar
+[13081] [DBG] [ACT] Exiting activity: Home
+[13081] [DBG] [ACT] Entering activity: Home
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/global_stats.bin (flags=0x0 errno=2 No such file or directory)
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/global_stats.bin.bak (flags=0x0 errno=2 No such file or directory)
+[13081] [DBG] [GSTATS] Global stats missing or corrupt, starting fresh
+[SIM] open failed: /tmp/planner-shots-wczmnaw8/sd/.crosspoint/synced_stats (flags=0x0 errno=2 No such file or directory)
+[SIM] Saved screenshot: /tmp/planner-shots-wczmnaw8/raw/home-menu.bmp
+[16085] [DBG] [ACT] Entering activity: Planner
+[SIM] Saved screenshot: /tmp/planner-shots-wczmnaw8/raw/agenda.bmp
+[19086] [DBG] [ACT] Exiting activity: Planner
+[20019] [INF] [MEM] Periodic: heap free=1048576 total=1048576 min=1048576 maxAlloc=1048576
+[20501] [DBG] [ACT] Exiting activity: Home
+[20501] [DBG] [ACT] Entering activity: Sleep
+[20507] [DBG] [MAIN] Entering deep sleep
+[SIM] Saved screenshot: /tmp/planner-shots-wczmnaw8/raw/sleep.bmp
+SIMRESOURCE final internal_current=1048576 internal_minimum=1048576 internal_largest=1048576 internal_live=0 psram_current=0 psram_minimum=0 psram_largest=0 psram_live=0

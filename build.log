@@ -1,0 +1,300 @@
+Compiling .pio/build/simulator/src/components/HeaderDate.o
+Compiling .pio/build/simulator/src/components/HomeCoverCache.o
+Compiling .pio/build/simulator/src/components/PlannerPageDots.o
+Compiling .pio/build/simulator/src/components/TouchActionButtons.o
+Compiling .pio/build/simulator/src/components/TouchHeaderBackButton.o
+Compiling .pio/build/simulator/src/components/TouchRegistry.o
+Compiling .pio/build/simulator/src/components/UITheme.o
+Compiling .pio/build/simulator/src/components/themes/BaseTheme.o
+Compiling .pio/build/simulator/src/components/themes/dashboard/DashboardTheme.o
+Compiling .pio/build/simulator/src/components/themes/lyra/Lyra3CoversTheme.o
+Compiling .pio/build/simulator/src/components/themes/lyra/LyraCarouselTheme.o
+Compiling .pio/build/simulator/src/components/themes/lyra/LyraTheme.o
+Compiling .pio/build/simulator/src/components/themes/minimal/MinimalTheme.o
+Compiling .pio/build/simulator/src/components/themes/roundedraff/RoundedRaffTheme.o
+Compiling .pio/build/simulator/src/main.o
+Compiling .pio/build/simulator/src/network/CrossPointWebServer.o
+Compiling .pio/build/simulator/src/network/HttpDownloader.o
+Compiling .pio/build/simulator/src/network/PlannerApi.o
+Compiling .pio/build/simulator/src/network/PlannerBackgroundSync.o
+Compiling .pio/build/simulator/src/network/UsbSerialFileTransfer.o
+Compiling .pio/build/simulator/src/network/WebDAVHandler.o
+Compiling .pio/build/simulator/src/platform/UsbDisabledClassCallbacks.o
+Compiling .pio/build/simulator/src/platform/UsbSerialJtagHandoff.o
+Compiling .pio/build/simulator/src/simulator/SimulatorHomeKeyInput.o
+Compiling .pio/build/simulator/src/simulator/SimulatorSmokeTest.o
+Compiling .pio/build/simulator/src/util/BatteryDiagnosticLog.o
+Compiling .pio/build/simulator/src/util/BookCacheUtils.o
+Compiling .pio/build/simulator/src/util/BookMoveUtils.o
+Compiling .pio/build/simulator/src/util/BuildInfo.o
+Compiling .pio/build/simulator/src/util/ButtonNavigator.o
+Compiling .pio/build/simulator/src/util/DictLayout.o
+Compiling .pio/build/simulator/src/util/Dictionary.o
+Compiling .pio/build/simulator/src/util/DictionaryLookupController.o
+Compiling .pio/build/simulator/src/util/DictionaryLookupWorker.o
+Compiling .pio/build/simulator/src/util/DictionaryRegistry.o
+Compiling .pio/build/simulator/src/util/LookupHistory.o
+Compiling .pio/build/simulator/src/util/NextBookFinder.o
+Compiling .pio/build/simulator/src/util/QrUtils.o
+Compiling .pio/build/simulator/src/util/ScreenshotUtil.o
+Compiling .pio/build/simulator/src/util/StringUtils.o
+Compiling .pio/build/simulator/src/util/UrlUtils.o
+Compiling .pio/build/simulator/src/util/WordSelectNavigator.o
+Compiling .pio/build/simulator/lib51d/Utf8/Utf8.o
+Compiling .pio/build/simulator/lib5d1/uzlib/tinflate.o
+Compiling .pio/build/simulator/lib5d1/uzlib/uzlib_checksums.o
+Archiving .pio/build/simulator/lib5d1/libuzlib.a
+Archiving .pio/build/simulator/lib51d/libUtf8.a
+Compiling .pio/build/simulator/lib5a8/InflateReader/InflateReader.o
+Archiving .pio/build/simulator/lib5a8/libInflateReader.a
+Indexing .pio/build/simulator/lib5d1/libuzlib.a
+Indexing .pio/build/simulator/lib5a8/libInflateReader.a
+Indexing .pio/build/simulator/lib51d/libUtf8.a
+Compiling .pio/build/simulator/lib4da/Logging/Logging.o
+Compiling .pio/build/simulator/liba6b/Memory/BuildScratch.o
+Compiling .pio/build/simulator/lib3ef/EpdFont/EpdFont.o
+Compiling .pio/build/simulator/lib3ef/EpdFont/EpdFontFamily.o
+Compiling .pio/build/simulator/lib3ef/EpdFont/FontDecompressor.o
+Compiling .pio/build/simulator/lib3ef/EpdFont/SdCardFont.o
+Archiving .pio/build/simulator/liba6b/libMemory.a
+Archiving .pio/build/simulator/lib4da/libLogging.a
+Indexing .pio/build/simulator/liba6b/libMemory.a
+Indexing .pio/build/simulator/lib4da/libLogging.a
+Compiling .pio/build/simulator/lib3ef/EpdFont/SdCardFontManager.o
+Compiling .pio/build/simulator/lib3ef/EpdFont/SdCardFontRegistry.o
+Compiling .pio/build/simulator/libfb0/ScalableFont/HalScalableFont.o
+Compiling .pio/build/simulator/libfb0/ScalableFont/ScalableBuiltins.o
+Archiving .pio/build/simulator/libfb0/libScalableFont.a
+Indexing .pio/build/simulator/libfb0/libScalableFont.a
+Compiling .pio/build/simulator/lib812/MiniBidi/BidiUtils.o
+Compiling .pio/build/simulator/lib812/MiniBidi/minibidi.o
+Compiling .pio/build/simulator/libe0d/GfxRenderer/Bitmap.o
+Compiling .pio/build/simulator/libe0d/GfxRenderer/BitmapHelpers.o
+Archiving .pio/build/simulator/lib3ef/libEpdFont.a
+Archiving .pio/build/simulator/lib812/libMiniBidi.a
+Indexing .pio/build/simulator/lib3ef/libEpdFont.a
+Indexing .pio/build/simulator/lib812/libMiniBidi.a
+Compiling .pio/build/simulator/libe0d/GfxRenderer/FontCacheManager.o
+Compiling .pio/build/simulator/libe0d/GfxRenderer/GfxRenderer.o
+Compiling .pio/build/simulator/lib121/simulator/CrossPointWebServer.o
+Compiling .pio/build/simulator/lib121/simulator/ESP.o
+Compiling .pio/build/simulator/lib121/simulator/HalClock.o
+Compiling .pio/build/simulator/lib121/simulator/HalDisplay.o
+Compiling .pio/build/simulator/lib121/simulator/HalFrontlight.o
+Compiling .pio/build/simulator/lib121/simulator/HalGPIO.o
+Archiving .pio/build/simulator/libe0d/libGfxRenderer.a
+Indexing .pio/build/simulator/libe0d/libGfxRenderer.a
+Compiling .pio/build/simulator/lib121/simulator/HalPowerManager.o
+Compiling .pio/build/simulator/lib121/simulator/HalStorage.o
+Compiling .pio/build/simulator/lib121/simulator/HalSystem.o
+Compiling .pio/build/simulator/lib121/simulator/HalTiltSensor.o
+Compiling .pio/build/simulator/lib121/simulator/NetworkClient.o
+Compiling .pio/build/simulator/lib121/simulator/SecureClient.o
+Compiling .pio/build/simulator/lib121/simulator/SimulatorImageDecode.o
+Compiling .pio/build/simulator/lib121/simulator/SimulatorLifecycle.o
+Compiling .pio/build/simulator/lib121/simulator/SimulatorStackCheck.o
+Compiling .pio/build/simulator/lib121/simulator/WebServer.o
+Compiling .pio/build/simulator/lib121/simulator/WebSocketsServer.o
+Compiling .pio/build/simulator/lib121/simulator/WiFiClient.o
+Compiling .pio/build/simulator/lib121/simulator/firmware_link_stubs.o
+Compiling .pio/build/simulator/lib121/simulator/qrcode.o
+Compiling .pio/build/simulator/lib121/simulator/simulator_firmware.o
+Compiling .pio/build/simulator/lib121/simulator/simulator_main.o
+Compiling .pio/build/simulator/lib121/simulator/simulator_ota.o
+Compiling .pio/build/simulator/libfeb/FreeInkUI/FreeInkUI.o
+Compiling .pio/build/simulator/lib5c5/NearbyTransfer/NearbyTransfer.o
+Archiving .pio/build/simulator/lib5c5/libNearbyTransfer.a
+Indexing .pio/build/simulator/lib5c5/libNearbyTransfer.a
+Compiling .pio/build/simulator/lib8aa/QRCode/qrcode.o
+Archiving .pio/build/simulator/lib8aa/libQRCode.a
+Indexing .pio/build/simulator/lib8aa/libQRCode.a
+Compiling .pio/build/simulator/lib01f/PNGdec/PNGdec.o
+Compiling .pio/build/simulator/lib01f/PNGdec/adler32.o
+Compiling .pio/build/simulator/lib01f/PNGdec/crc32.o
+Archiving .pio/build/simulator/libfeb/libFreeInkUI.a
+Compiling .pio/build/simulator/lib01f/PNGdec/infback.o
+Indexing .pio/build/simulator/libfeb/libFreeInkUI.a
+Compiling .pio/build/simulator/lib01f/PNGdec/inffast.o
+Compiling .pio/build/simulator/lib01f/PNGdec/inflate.o
+Compiling .pio/build/simulator/lib01f/PNGdec/inftrees.o
+Compiling .pio/build/simulator/lib01f/PNGdec/s3_simd_rgb565.o
+Compiling .pio/build/simulator/lib01f/PNGdec/zutil.o
+Archiving .pio/build/simulator/lib121/libsimulator.a
+Compiling .pio/build/simulator/lib1fc/JPEGDEC/JPEGDEC.o
+Indexing .pio/build/simulator/lib121/libsimulator.a
+Compiling .pio/build/simulator/lib1fc/JPEGDEC/s3_simd_420.o
+Compiling .pio/build/simulator/lib1fc/JPEGDEC/s3_simd_444.o
+Compiling .pio/build/simulator/lib1fc/JPEGDEC/s3_simd_dequant.o
+Compiling .pio/build/simulator/lib596/Serialization/ObfuscationUtils.o
+Compiling .pio/build/simulator/lib596/Serialization/PersistableStore.o
+Archiving .pio/build/simulator/lib01f/libPNGdec.a
+Indexing .pio/build/simulator/lib01f/libPNGdec.a
+Compiling .pio/build/simulator/libd0d/I18n/DateFormatting.o
+Compiling .pio/build/simulator/libd0d/I18n/I18n.o
+Compiling .pio/build/simulator/libd0d/I18n/I18nStrings.o
+Archiving .pio/build/simulator/libd0d/libI18n.a
+Indexing .pio/build/simulator/libd0d/libI18n.a
+Compiling .pio/build/simulator/lib675/FsHelpers/FsHelpers.o
+Archiving .pio/build/simulator/lib1fc/libJPEGDEC.a
+Compiling .pio/build/simulator/lib675/FsHelpers/NaturalSort.o
+Indexing .pio/build/simulator/lib1fc/libJPEGDEC.a
+Compiling .pio/build/simulator/lib8f5/JsonParser/ReleaseJsonParser.o
+Compiling .pio/build/simulator/lib8f5/JsonParser/StreamingJsonParser.o
+Compiling .pio/build/simulator/lib41c/Planner/PlannerDate.o
+Archiving .pio/build/simulator/lib8f5/libJsonParser.a
+Compiling .pio/build/simulator/lib41c/Planner/PlannerHash.o
+Indexing .pio/build/simulator/lib8f5/libJsonParser.a
+Compiling .pio/build/simulator/lib41c/Planner/PlannerJson.o
+Archiving .pio/build/simulator/lib596/libSerialization.a
+Compiling .pio/build/simulator/lib41c/Planner/PlannerTodos.o
+Indexing .pio/build/simulator/lib596/libSerialization.a
+Compiling .pio/build/simulator/libd02/miniz/InflateStream.o
+Archiving .pio/build/simulator/lib675/libFsHelpers.a
+Indexing .pio/build/simulator/lib675/libFsHelpers.a
+Compiling .pio/build/simulator/libd02/miniz/miniz_impl.o
+Compiling .pio/build/simulator/lib83a/ZipFile/ZipFile.o
+Compiling .pio/build/simulator/lib980/expat/xmlparse.o
+Compiling .pio/build/simulator/lib980/expat/xmlrole.o
+Archiving .pio/build/simulator/lib41c/libPlanner.a
+Compiling .pio/build/simulator/lib980/expat/xmltok.o
+Indexing .pio/build/simulator/lib41c/libPlanner.a
+Compiling .pio/build/simulator/libf24/JpegToBmpConverter/JpegToBmpConverter.o
+Archiving .pio/build/simulator/lib980/libexpat.a
+Indexing .pio/build/simulator/lib980/libexpat.a
+Compiling .pio/build/simulator/libaab/PngToBmpConverter/PngToBmpConverter.o
+Archiving .pio/build/simulator/libd02/libminiz.a
+Indexing .pio/build/simulator/libd02/libminiz.a
+Compiling .pio/build/simulator/libf2e/Epub/Epub.o
+Archiving .pio/build/simulator/lib83a/libZipFile.a
+Indexing .pio/build/simulator/lib83a/libZipFile.a
+Compiling .pio/build/simulator/libf2e/Epub/Epub/BookMetadataCache.o
+Archiving .pio/build/simulator/libf24/libJpegToBmpConverter.a
+Indexing .pio/build/simulator/libf24/libJpegToBmpConverter.a
+Compiling .pio/build/simulator/libf2e/Epub/Epub/Page.o
+Archiving .pio/build/simulator/libaab/libPngToBmpConverter.a
+Indexing .pio/build/simulator/libaab/libPngToBmpConverter.a
+Compiling .pio/build/simulator/libf2e/Epub/Epub/ParsedText.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/Section.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/blocks/ImageBlock.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/blocks/TextBlock.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/converters/ImageDecoderFactory.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/converters/ImageDimsProbe.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/converters/ImageToFramebufferDecoder.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/converters/JpegToFramebufferConverter.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/converters/PngToFramebufferConverter.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/css/CssParser.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/htmlEntities.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/hyphenation/HyphenationCommon.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/hyphenation/Hyphenator.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/hyphenation/LanguageRegistry.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/hyphenation/LiangHyphenation.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/image/PxcV2.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/parsers/ChapterHtmlSlimParser.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/parsers/ContainerParser.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/parsers/ContentOpfParser.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/parsers/PreviewBlockLocator.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/parsers/TocNavParser.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/parsers/TocNcxParser.o
+Compiling .pio/build/simulator/libf2e/Epub/Epub/tables/CompactTableLayout.o
+Compiling .pio/build/simulator/lib81a/Xtc/Xtc.o
+Compiling .pio/build/simulator/lib81a/Xtc/Xtc/XtcParser.o
+Compiling .pio/build/simulator/lib91e/KOReaderSync/ChapterXPathResolver.o
+Compiling .pio/build/simulator/lib91e/KOReaderSync/KOReaderCredentialStore.o
+Archiving .pio/build/simulator/libf2e/libEpub.a
+Indexing .pio/build/simulator/libf2e/libEpub.a
+Archiving .pio/build/simulator/lib81a/libXtc.a
+Indexing .pio/build/simulator/lib81a/libXtc.a
+Compiling .pio/build/simulator/lib91e/KOReaderSync/KOReaderDocumentId.o
+Compiling .pio/build/simulator/lib91e/KOReaderSync/KOReaderSyncClient.o
+In file included from .pio/libdeps/simulator/simulator/src/MD5Builder.h:6,
+                 from lib/KOReaderSync/KOReaderCredentialStore.cpp:4:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h: In member function ‘void MD5Builder::begin()’:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:25:13: warning: ‘int MD5_Init(MD5_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   25 |     MD5_Init(&ctx_);
+      |     ~~~~~~~~^~~~~~~
+In file included from .pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:12:
+/usr/include/openssl/md5.h:49:27: note: declared here
+   49 | OSSL_DEPRECATEDIN_3_0 int MD5_Init(MD5_CTX *c);
+      |                           ^~~~~~~~
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h: In member function ‘void MD5Builder::add(const uint8_t*, size_t)’:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:33:15: warning: ‘int MD5_Update(MD5_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   33 |     MD5_Update(&ctx_, data, len);
+      |     ~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+/usr/include/openssl/md5.h:50:27: note: declared here
+   50 | OSSL_DEPRECATEDIN_3_0 int MD5_Update(MD5_CTX *c, const void *data, size_t len);
+      |                           ^~~~~~~~~~
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h: In member function ‘void MD5Builder::calculate()’:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:46:14: warning: ‘int MD5_Final(unsigned char*, MD5_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   46 |     MD5_Final(digest_, &ctx_);
+      |     ~~~~~~~~~^~~~~~~~~~~~~~~~
+/usr/include/openssl/md5.h:51:27: note: declared here
+   51 | OSSL_DEPRECATEDIN_3_0 int MD5_Final(unsigned char *md, MD5_CTX *c);
+      |                           ^~~~~~~~~
+In file included from .pio/libdeps/simulator/simulator/src/MD5Builder.h:6,
+                 from lib/KOReaderSync/KOReaderDocumentId.cpp:5:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h: In member function ‘void MD5Builder::begin()’:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:25:13: warning: ‘int MD5_Init(MD5_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   25 |     MD5_Init(&ctx_);
+      |     ~~~~~~~~^~~~~~~
+In file included from .pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:12:
+/usr/include/openssl/md5.h:49:27: note: declared here
+   49 | OSSL_DEPRECATEDIN_3_0 int MD5_Init(MD5_CTX *c);
+      |                           ^~~~~~~~
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h: In member function ‘void MD5Builder::add(const uint8_t*, size_t)’:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:33:15: warning: ‘int MD5_Update(MD5_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   33 |     MD5_Update(&ctx_, data, len);
+      |     ~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+/usr/include/openssl/md5.h:50:27: note: declared here
+   50 | OSSL_DEPRECATEDIN_3_0 int MD5_Update(MD5_CTX *c, const void *data, size_t len);
+      |                           ^~~~~~~~~~
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h: In member function ‘void MD5Builder::calculate()’:
+.pio/libdeps/simulator/simulator/src/MD5Builder_linux.h:46:14: warning: ‘int MD5_Final(unsigned char*, MD5_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   46 |     MD5_Final(digest_, &ctx_);
+      |     ~~~~~~~~~^~~~~~~~~~~~~~~~
+/usr/include/openssl/md5.h:51:27: note: declared here
+   51 | OSSL_DEPRECATEDIN_3_0 int MD5_Final(unsigned char *md, MD5_CTX *c);
+      |                           ^~~~~~~~~
+Compiling .pio/build/simulator/lib91e/KOReaderSync/ProgressMapper.o
+At global scope:
+cc1plus: note: unrecognized command-line option ‘-Wno-c++11-narrowing’ may have been intended to silence earlier diagnostics
+At global scope:
+cc1plus: note: unrecognized command-line option ‘-Wno-c++11-narrowing’ may have been intended to silence earlier diagnostics
+Compiling .pio/build/simulator/lib7fe/Txt/Txt.o
+Compiling .pio/build/simulator/lib8b9/LibraryIndex/LibraryBuilder.o
+Compiling .pio/build/simulator/lib8b9/LibraryIndex/LibraryFormat.o
+Compiling .pio/build/simulator/lib8b9/LibraryIndex/LibraryIndexFile.o
+Archiving .pio/build/simulator/lib7fe/libTxt.a
+Indexing .pio/build/simulator/lib7fe/libTxt.a
+Compiling .pio/build/simulator/lib8b9/LibraryIndex/LibraryMetadataCache.o
+Archiving .pio/build/simulator/lib91e/libKOReaderSync.a
+Indexing .pio/build/simulator/lib91e/libKOReaderSync.a
+Compiling .pio/build/simulator/lib8b9/LibraryIndex/LibrarySort.o
+Compiling .pio/build/simulator/lib8b9/LibraryIndex/LibraryText.o
+Compiling .pio/build/simulator/lib0c2/OpdsParser/OpdsParser.o
+Compiling .pio/build/simulator/lib0c2/OpdsParser/OpdsStream.o
+Compiling .pio/build/simulator/libd81/DictHtmlRenderer/DictHtmlRenderer.o
+Compiling .pio/build/simulator/lib80a/FileIndex/FileIndex.o
+Archiving .pio/build/simulator/lib8b9/libLibraryIndex.a
+Indexing .pio/build/simulator/lib8b9/libLibraryIndex.a
+Archiving .pio/build/simulator/lib0c2/libOpdsParser.a
+Indexing .pio/build/simulator/lib0c2/libOpdsParser.a
+lib/FileIndex/FileIndex.cpp: In member function ‘bool FileIndex::build(const char*, AcceptFn, uint32_t, uint32_t, uint32_t)’:
+lib/FileIndex/FileIndex.cpp:219:47: warning: ‘.tmp’ directive output may be truncated writing 4 bytes into a region of size between 1 and 64 [-Wformat-truncation=]
+  219 |   snprintf(bs.tmpPath, sizeof(bs.tmpPath), "%s.tmp", idxPath);
+      |                                               ^~~~
+lib/FileIndex/FileIndex.cpp:219:11: note: ‘snprintf’ output between 5 and 68 bytes into a destination of size 64
+  219 |   snprintf(bs.tmpPath, sizeof(bs.tmpPath), "%s.tmp", idxPath);
+      |   ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At global scope:
+cc1plus: note: unrecognized command-line option ‘-Wno-c++11-narrowing’ may have been intended to silence earlier diagnostics
+Archiving .pio/build/simulator/libd81/libDictHtmlRenderer.a
+Archiving .pio/build/simulator/lib80a/libFileIndex.a
+Indexing .pio/build/simulator/libd81/libDictHtmlRenderer.a
+Indexing .pio/build/simulator/lib80a/libFileIndex.a
+Linking .pio/build/simulator/program
+======================== [SUCCESS] Took 160.05 seconds ========================
+
+Environment    Status    Duration
+-------------  --------  ------------
+simulator      SUCCESS   00:02:40.053
+========================= 1 succeeded in 00:02:40.053 =========================
