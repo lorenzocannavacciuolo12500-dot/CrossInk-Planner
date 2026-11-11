@@ -7,6 +7,7 @@
 #include <cstdio>
 
 #include "CrossPointSettings.h"
+#include "platform/PlannerPlatform.h"
 
 namespace PlannerFormat {
 namespace {
@@ -26,7 +27,7 @@ void clockText(const int minuteOfDay, char* buf, const size_t bufSize) {
 
 int32_t today() {
   time_t now = 0;
-  if (!halClock.getUnixTime(now)) return 0;
+  if (!planner_platform::getUnixTime(now)) return 0;
   return planner::localYmdFromUtc(static_cast<int64_t>(now), offsetMinutes());
 }
 

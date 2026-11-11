@@ -16,6 +16,7 @@
 #include "activities/util/ConfirmationActivity.h"
 #include "activities/util/KeyboardEntryActivity.h"
 #include "components/icons/plannerCheckboxIcons.h"
+#include "platform/PlannerPlatform.h"
 
 namespace fui = freeink::ui;
 
@@ -152,7 +153,7 @@ void TodoListActivity::openAddTask() {
     if (result.isCancelled) return;
     const auto* text = std::get_if<KeyboardResult>(&result.data);
     if (!text) return;
-    if (planner::addLocalTodo(list, text->text, 0, PlannerStore::nowForEdits(), esp_random())) {
+    if (planner::addLocalTodo(list, text->text, 0, PlannerStore::nowForEdits(), planner_platform::random32())) {
       persist();
       // Select the new task (open, undated: it sorts after dated open tasks).
       const size_t newIndex = list.items.size() - 1;

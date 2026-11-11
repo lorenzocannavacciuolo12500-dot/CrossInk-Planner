@@ -12,6 +12,8 @@
 #include <cstring>
 #include <string>
 
+#include "platform/PlannerPlatform.h"
+
 namespace PlannerStore {
 namespace {
 
@@ -19,7 +21,7 @@ constexpr size_t kIoChunk = 256;
 
 std::string newStoreId() {
   char buf[12];
-  std::snprintf(buf, sizeof(buf), "%08x", static_cast<unsigned>(esp_random()));
+  std::snprintf(buf, sizeof(buf), "%08x", static_cast<unsigned>(planner_platform::random32()));
   return buf;
 }
 
@@ -200,7 +202,7 @@ bool calendarUnchanged(const planner::Calendar& calendar) {
 
 int64_t nowForEdits() {
   time_t now = 0;
-  return halClock.getUnixTime(now) ? static_cast<int64_t>(now) : 0;
+  return planner_platform::getUnixTime(now) ? static_cast<int64_t>(now) : 0;
 }
 
 namespace {

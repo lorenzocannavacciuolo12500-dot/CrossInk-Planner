@@ -20,6 +20,7 @@
 
 #include "CrossPointSettings.h"
 #include "PlannerStore.h"
+#include "platform/PlannerPlatform.h"
 
 namespace PlannerApi {
 namespace {
@@ -148,7 +149,7 @@ void handleStatus(WebServer& server) {
   const auto todoCount = static_cast<size_t>(std::count_if(
       todos.items.begin(), todos.items.end(), [](const planner::TodoItem& item) { return !item.deleted; }));
   time_t now = 0;
-  const bool clockValid = halClock.getUnixTime(now);
+  const bool clockValid = planner_platform::getUnixTime(now);
 
   char json[320];
   std::snprintf(json, sizeof(json),
@@ -172,8 +173,8 @@ void handleSetTime(WebServer& server) {
     return;
   }
   time_t before = 0;
-  const bool hadTime = halClock.getUnixTime(before);
-  if (!halClock.setFromUnixTime(static_cast<time_t>(time.utc))) {
+  const bool hadTime = planner_platform::getUnixTime(before);
+  if (!planner_platform::setUnixTime(static_cast<time_t>(time.utc))) {
     server.send(400, "text/plain", "Implausible time");
     return;
   }
