@@ -1,4 +1,4 @@
-## [Unreleased] - CrossInk-Planner
+## [Unreleased] - Crossink-Planner 1.6.1
 
 ### Added
 
@@ -15,6 +15,14 @@
 
 - To-Do List: tasks are grouped like the companion app, the ones in no list first and then one block per list. The
   list's name is a row of its own: Confirm on it folds the list away until the reader restarts.
+
+### Changed
+
+- The firmware calls itself "Crossink-Planner 1.6.1" (Settings, About).
+- To-Do List: tasks stay in the order they were made in (or the one chosen in the app); checking one leaves it where
+  it is, marked done. There are no due dates and no task counts on the page any more, and holding Confirm no longer
+  deletes a task: the "Delete completed" row removes the checked ones.
+- Calendar: the day headings no longer show how many events the day has.
 - Calendar: Confirm on an event opens it on its own screen, where a long title or place is shown in full instead of
   being cut to one line.
 - Going to sleep on the inactivity timeout shows the cover of the book being read, whatever screen was open, so the
@@ -22,8 +30,7 @@
 
 ### Fixed
 
-- To-Do List: checking a task no longer drags the selection down with it. The task still moves to the completed ones,
-  but the cursor stays on the row it was on, so a list can be ticked off from the top down.
+- To-Do List: checking a task no longer drags the selection down with it.
 - Opening the To-Do List or Calendar from Home could crash the reader (`esp_netif_create_default_wifi_sta` assert / `abort()`): Home stayed in memory under the page, leaving too little heap for Wi-Fi. The pages now replace Home, and background Wi-Fi is not started when free memory is too low.
 
 ### Changed

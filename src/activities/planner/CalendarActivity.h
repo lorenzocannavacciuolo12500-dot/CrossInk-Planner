@@ -11,7 +11,7 @@
 /**
  * Planner → Calendar: read-only agenda from today onwards, built from the last
  * snapshot the companion app pushed (calendar.json). Laid out like the
- * companion app: a heading per day ("Martedì 17 novembre - 1 evento"), then
+ * companion app: a heading per day ("Martedì 17 novembre"), then
  * one row per event with the title and "time - place - calendar" below it.
  * Multi-day events appear once per day they cover. Confirm on a row opens the
  * event on its own screen, where a long title or place is not cut short.
@@ -51,7 +51,7 @@ class CalendarActivity final : public PlannerListActivity {
   char updatedLabel[64] = {};
   // Row text buffers; rebuilt on every render, reserved so pointers stay valid.
   std::vector<std::string> subtitles;
-  std::vector<std::string> headings;  // "Martedì 17 novembre - 2 eventi", one per day
+  std::vector<std::string> headings;  // "Martedì 17 novembre", one per day
 
   void reload();
   void buildAgenda();

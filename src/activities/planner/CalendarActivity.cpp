@@ -101,22 +101,11 @@ void CalendarActivity::fillItems(std::vector<fui::ListItem>& items) {
     fui::ListItem item;
     item.label = ev.title.c_str();
 
-    // Day heading before the first event of each day, with its event count.
+    // Day heading before the first event of each day.
     if (r == 0 || agenda[r - 1].day != row.day) {
-      unsigned count = 0;
-      for (size_t k = r; k < agenda.size() && agenda[k].day == row.day; k++) count++;
       char day[48];
-      char countText[24];
       PlannerFormat::longDayLabel(row.day, todayYmd, day, sizeof(day));
-      if (count == 1) {
-        std::snprintf(countText, sizeof(countText), "%s", tr(STR_PLANNER_EVENT_COUNT_ONE));
-      } else {
-        std::snprintf(countText, sizeof(countText), tr(STR_PLANNER_EVENT_COUNT_FORMAT), count);
-      }
-      std::string heading = day;
-      heading += " - ";
-      heading += countText;
-      headings.push_back(std::move(heading));
+      headings.push_back(day);
       item.sectionHeading = headings.back().c_str();
     }
 

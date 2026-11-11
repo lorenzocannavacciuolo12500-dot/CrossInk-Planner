@@ -160,7 +160,8 @@ std::vector<TodoSection> visibleTodoSections(const TodoList& list) {
   }
 
   for (auto& section : sections) {
-    // A block the user arranged by hand in the app keeps that arrangement.
+    // Like the companion app: the order the tasks were made in, or the one
+    // chosen by hand there. Completed tasks keep their place.
     bool byHand = false;
     for (const uint16_t idx : section.items) {
       if (list.items[idx].order != 0) {
@@ -168,20 +169,11 @@ std::vector<TodoSection> visibleTodoSections(const TodoList& list) {
         break;
       }
     }
-    std::stable_sort(section.items.begin(), section.items.end(), [&list, byHand](const uint16_t a, const uint16_t b) {
-      const TodoItem& x = list.items[a];
-      const TodoItem& y = list.items[b];
-      if (byHand) {
-        const uint32_t px = x.order == 0 ? UINT32_MAX : x.order;
-        const uint32_t py = y.order == 0 ? UINT32_MAX : y.order;
-        return px < py;
-      }
-      if (x.done != y.done) return !x.done;
-      if (x.done) return false;  // completed: keep list order
-      // Dated tasks first, earliest due first; undated keep list order.
-      const int32_t dx = x.due == 0 ? INT32_MAX : x.due;
-      const int32_t dy = y.due == 0 ? INT32_MAX : y.due;
-      return dx < dy;
+    if (!byHand) continue;
+    std::stable_sort(section.items.begin(), section.items.end(), [&list](const uint16_t a, const uint16_t b) {
+      const uint32_t pa = list.items[a].order == 0 ? UINT32_MAX : list.items[a].order;
+      const uint32_t pb = list.items[b].order == 0 ? UINT32_MAX : list.items[b].order;
+      return pa < pb;
     });
   }
   return sections;

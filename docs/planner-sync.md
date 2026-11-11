@@ -63,7 +63,7 @@ Each task also carries `list` (the name of the list it belongs to, empty for non
 and `order` (the position chosen by hand in the companion app, 0 for none). The
 reader keeps at most 12 list names of 40 bytes; names no task points at any more
 are forgotten at the next sync. Inside a block the reader follows `order` when the
-app sent any, otherwise open tasks by due date with the completed ones last.
+app sent any, otherwise the order the tasks were made in; completed tasks keep their place.
 
 ### `todos.json`
 

@@ -39,8 +39,8 @@ struct TodoSection {
 };
 
 // The visible tasks grouped by list. Inside a block the order follows the
-// companion app's positions when it sent any, otherwise open tasks by due date
-// with the completed ones last.
+// companion app's positions when it sent any, otherwise the order the tasks
+// were made in. Completed tasks keep their place.
 std::vector<TodoSection> visibleTodoSections(const TodoList& list);
 
 // Index of `name` in `lists`, adding it when it is new. Returns kNoList for an

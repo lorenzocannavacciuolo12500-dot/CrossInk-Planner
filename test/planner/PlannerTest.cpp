@@ -334,8 +334,12 @@ void testTodoLists() {
   const auto sections = visibleTodoSections(list);
   CHECK(sections.size() == 3);
   CHECK(sections[0].listIndex == kNoList);
-  // No list: by due date, earliest first.
-  CHECK(sections[0].items.size() == 2 && sections[0].items[0] == 3 && sections[0].items[1] == 2);
+  // No list: the order they were made in, due dates do not matter.
+  CHECK(sections[0].items.size() == 2 && sections[0].items[0] == 2 && sections[0].items[1] == 3);
+  // A completed task keeps its place.
+  list.items[2].done = true;
+  CHECK(visibleTodoSections(list)[0].items[0] == 2);
+  list.items[2].done = false;
   // Spesa: the positions chosen in the app win.
   CHECK(sections[1].items.size() == 2 && sections[1].items[0] == 1 && sections[1].items[1] == 0);
   CHECK(sections[2].items.size() == 1 && sections[2].items[0] == 4);

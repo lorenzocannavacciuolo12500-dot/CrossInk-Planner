@@ -15,7 +15,6 @@
 #include <utility>
 #include <vector>
 
-#include "PlannerFormat.h"
 #include "PlannerStore.h"
 #include "activities/util/ConfirmationActivity.h"
 #include "activities/util/KeyboardEntryActivity.h"
@@ -88,9 +87,6 @@ void TodoListActivity::refreshDerived() {
                    [listIndex](const uint16_t item) { return Row{item, listIndex, false}; });
   }
   completedCount = visible - planner::countOpenTodos(list);
-  todayYmd = PlannerFormat::today();
-  std::snprintf(deleteCompletedLabel, sizeof(deleteCompletedLabel), tr(STR_PLANNER_DELETE_COMPLETED_FORMAT),
-                static_cast<unsigned>(completedCount));
 }
 
 void TodoListActivity::persist() {
@@ -124,39 +120,21 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
 
   for (const Row& row : rows) {
     if (row.heading) {
-      // Counted on the whole list, so a folded list still says how many it holds.
-      const auto count = static_cast<unsigned>(std::count_if(
-          list.items.begin(), list.items.end(),
-          [&row](const planner::TodoItem& item) { return !item.deleted && item.listIndex == row.listIndex; }));
-      char text[48];
-      std::snprintf(text, sizeof(text), tr(STR_PLANNER_LIST_TASKS_FORMAT), count);
-      std::string subtitle = text;
-      if (isCollapsed(row.listIndex)) {
-        subtitle += " - ";
-        subtitle += tr(STR_PLANNER_LIST_CLOSED);
-      }
-      subtitles.push_back(std::move(subtitle));
+      // A folded list says so; no task counts on the To-Do page.
+      subtitles.push_back(isCollapsed(row.listIndex) ? std::string(tr(STR_PLANNER_LIST_CLOSED)) : std::string());
       headings.push_back(list.lists[row.listIndex]);
 
       fui::ListItem heading;
       heading.label = headings.back().c_str();
-      heading.subtitle = subtitles.back().c_str();
+      heading.subtitle = subtitles.back().empty() ? nullptr : subtitles.back().c_str();
       items.push_back(heading);
       continue;
     }
 
     const planner::TodoItem& task = list.items[row.item];
-    std::string subtitle;
-    if (task.due != 0) {
-      char day[32];
-      char text[64];
-      PlannerFormat::dayLabel(task.due, todayYmd, day, sizeof(day));
-      const bool overdue = !task.done && todayYmd != 0 && task.due < todayYmd;
-      std::snprintf(text, sizeof(text), overdue ? tr(STR_PLANNER_OVERDUE_FORMAT) : tr(STR_PLANNER_DUE_FORMAT), day);
-      subtitle = text;
-    } else if (task.done) {
-      subtitle = tr(STR_PLANNER_DONE);
-    }
+    // No due dates on the To-Do page any more (the app dropped them); a
+    // completed task says so under its title, since the list cannot strike it.
+    std::string subtitle = task.done ? std::string(tr(STR_PLANNER_DONE)) : std::string();
     subtitles.push_back(std::move(subtitle));
 
     fui::ListItem entry;
@@ -169,12 +147,12 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
 
   fui::ListItem add;
   add.label = tr(STR_PLANNER_ADD_TASK);
-  add.subtitle = rows.empty() ? nullptr : tr(STR_PLANNER_HOLD_TO_DELETE);
+  add.subtitle = nullptr;
   items.push_back(add);
 
   if (completedCount > 0) {
     fui::ListItem clear;
-    clear.label = deleteCompletedLabel;
+    clear.label = tr(STR_PLANNER_DELETE_COMPLETED);
     items.push_back(clear);
   }
 }
@@ -191,14 +169,10 @@ void TodoListActivity::activate(const int index, const bool longPress) {
       return;
     }
     const size_t itemIndex = row.item;
-    if (longPress) {
-      confirmDeleteTask(itemIndex);
-      return;
-    }
+    if (longPress) return;
     const bool done = !list.items[itemIndex].done;
     if (planner::setLocalTodoDone(list, itemIndex, done, PlannerStore::nowForEdits())) {
-      // The checked task drops to the completed ones, but the cursor stays on
-      // the row it was on, so a list can be ticked off from the top down.
+      // The task keeps its place and the cursor stays on it.
       persist();
       clampSelection();
     }
@@ -232,21 +206,6 @@ void TodoListActivity::openAddTask() {
       }
       clampSelection();
     }
-  });
-}
-
-void TodoListActivity::confirmDeleteTask(const size_t itemIndex) {
-  auto confirmation = makeUniqueNoThrow<ConfirmationActivity>(renderer, mappedInput, tr(STR_PLANNER_DELETE_TASK),
-                                                              list.items[itemIndex].title, true);
-  if (!confirmation) {
-    LOG_ERR("PLN", "OOM: delete confirmation");
-    return;
-  }
-  const std::string id = list.items[itemIndex].id;
-  startActivityForResult(std::move(confirmation), [this, id](const ActivityResult& result) {
-    if (result.isCancelled) return;
-    const int idx = planner::findTodo(list, id);
-    if (idx >= 0 && planner::deleteLocalTodo(list, static_cast<size_t>(idx), PlannerStore::nowForEdits())) persist();
   });
 }
 

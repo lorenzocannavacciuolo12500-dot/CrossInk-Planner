@@ -13,7 +13,8 @@
  * first, then one block per list with its name as a row. Confirm on a list name
  * folds that list away (kept until the reader restarts).
  *
- * Confirm checks a task on or off; holding Confirm deletes it.
+ * Confirm checks a task on or off; a checked task keeps its place. The
+ * "Delete completed" row removes the checked ones.
  * The Previous Page side button (left edge on the X3) goes back to Home.
  * The last rows add a task (on-screen keyboard) and clear completed tasks.
  * Every change is written to todos.json right away; the companion app syncs it
@@ -32,7 +33,6 @@ class TodoListActivity final : public PlannerListActivity {
   void activate(int index, bool longPress) override;
   const char* screenTitle() const override;
   const char* confirmHint() const override;
-  bool supportsLongPress() const override { return true; }
   void onSideButton(bool next) override;
   void reloadData() override { reload(); }
   bool isActionRow(const int index) const override { return index >= addRowIndex(); }
@@ -52,11 +52,9 @@ class TodoListActivity final : public PlannerListActivity {
   planner::TodoList list;
   std::vector<Row> rows;  // display order, collapsed lists left out
   size_t completedCount = 0;
-  int32_t todayYmd = 0;
   // Row text buffers; rebuilt on every render, reserved so pointers stay valid.
   std::vector<std::string> subtitles;
   std::vector<std::string> headings;  // list names, one per heading row
-  char deleteCompletedLabel[48] = {};
 
   void reload();
   void refreshDerived();
@@ -66,6 +64,5 @@ class TodoListActivity final : public PlannerListActivity {
   void toggleCollapsed(uint8_t listIndex);
   int deleteCompletedRowIndex() const { return completedCount > 0 ? addRowIndex() + 1 : -1; }
   void openAddTask();
-  void confirmDeleteTask(size_t itemIndex);
   void confirmDeleteCompleted();
 };
