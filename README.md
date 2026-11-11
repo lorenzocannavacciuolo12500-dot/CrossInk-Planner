@@ -140,6 +140,9 @@ la rete); nell'app tocca **Impostazioni → Scansiona il QR del lettore**, aggiu
 - Immagini di questo README: `scripts/planner_screenshots.py` fa girare il firmware nel
   [simulatore](docs/simulator.md) con dati di esempio; il workflow `planner-screenshots.yml` pubblica le PNG nel
   branch `ci-results/screenshots`.
+- Release: modificando `.github/planner-release/` (nuovo `TAG` in `release.env` e note in `notes.md`) su `main`,
+  il workflow `planner-release.yml` compila il firmware e pubblica la release con il `.bin` e l'APK della companion,
+  preso dal branch `release-assets` (il repository della companion è privato).
 - Per compilare valgono le istruzioni di CrossInk in [docs/development](docs/development).
 
 ## Crediti
