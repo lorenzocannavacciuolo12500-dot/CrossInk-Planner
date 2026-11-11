@@ -13,7 +13,7 @@ namespace PlannerFormat {
 int32_t today();
 
 // Minutes after local midnight, or -1 when the clock is not trusted yet.
-int minuteOfDay();
+int nowMinuteOfDay();
 
 // "Today" / "Tomorrow" / "Yesterday" relative to `today`, otherwise "Wed 12 Nov".
 void dayLabel(int32_t ymd, int32_t today, char* buf, size_t bufSize);

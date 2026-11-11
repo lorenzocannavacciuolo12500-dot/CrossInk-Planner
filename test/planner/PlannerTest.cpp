@@ -37,7 +37,8 @@ std::string encode(const Calendar& cal) {
   return out;
 }
 
-template <typename T> bool decode(const std::string& json, T& out, size_t chunk = 7) {
+template <typename T>
+bool decode(const std::string& json, T& out, size_t chunk = 7) {
   PlannerJsonDecoder decoder(out);
   for (size_t i = 0; i < json.size(); i += chunk) {
     decoder.feed(json.data() + i, std::min(chunk, json.size() - i));

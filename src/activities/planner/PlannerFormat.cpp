@@ -31,7 +31,7 @@ int32_t today() {
   return planner::localYmdFromUtc(static_cast<int64_t>(now), offsetMinutes());
 }
 
-int minuteOfDay() {
+int nowMinuteOfDay() {
   time_t now = 0;
   if (!planner_platform::getUnixTime(now)) return -1;
   int minute = -1;

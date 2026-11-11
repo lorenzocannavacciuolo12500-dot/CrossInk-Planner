@@ -88,7 +88,7 @@ int drawDayEvents(const GfxRenderer& renderer, const planner::Calendar& calendar
 bool showTomorrow() {
   const int hour = CrossPointSettings::agendaTomorrowHour(SETTINGS.agendaTomorrowFrom);
   if (hour < 0) return false;
-  const int minute = PlannerFormat::minuteOfDay();
+  const int minute = PlannerFormat::nowMinuteOfDay();
   return minute >= hour * 60;
 }
 }  // namespace
