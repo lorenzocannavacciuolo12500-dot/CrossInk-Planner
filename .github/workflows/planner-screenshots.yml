@@ -46,7 +46,7 @@ jobs:
         id: build
         continue-on-error: true
         env:
-          PLATFORMIO_BUILD_FLAGS: "-lssl -lcrypto"
+          PLATFORMIO_BUILD_FLAGS: "-lssl -lcrypto -Wno-narrowing"
         run: |
           set -o pipefail
           mkdir -p shots

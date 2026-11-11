@@ -2,7 +2,7 @@
 """Capture README screenshots of the Planner screens in the CrossInk simulator.
 
 Builds nothing: run `pio run -e simulator` first (on Linux add
-`PLATFORMIO_BUILD_FLAGS="-lssl -lcrypto"`). The script prepares a throw-away SD
+`PLATFORMIO_BUILD_FLAGS="-lssl -lcrypto -Wno-narrowing"`). The script prepares a throw-away SD
 card with sample tasks and a calendar snapshot (dates relative to today), drives
 the simulator with CROSSPOINT_SIM_INPUT_SCRIPT and saves PNG files.
 
