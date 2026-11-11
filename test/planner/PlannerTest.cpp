@@ -328,7 +328,7 @@ void testTodoLists() {
   list.items.back().listIndex = internTodoList(list, "Ferramenta");
 
   CHECK(list.lists.size() == 2);
-  CHECK(internTodoList(list, "Spesa") == 0);   // already known
+  CHECK(internTodoList(list, "Spesa") == 0);  // already known
   CHECK(internTodoList(list, "  ") == kNoList);
 
   const auto sections = visibleTodoSections(list);
@@ -353,8 +353,7 @@ void testTodoLists() {
   TodoList device;
   device.storeId = "s1";
   std::vector<std::string> pushLists = {"Ferramenta", "Spesa"};
-  std::vector<TodoItem> push = {companionItem("x", "Viti", false, 200),
-                                companionItem("y", "Latte", false, 200)};
+  std::vector<TodoItem> push = {companionItem("x", "Viti", false, 200), companionItem("y", "Latte", false, 200)};
   push[0].listIndex = 0;
   push[1].listIndex = 1;
   applyCompanionTodos(device, std::move(push), 0, true, &pushLists);

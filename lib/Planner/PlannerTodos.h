@@ -46,9 +46,7 @@ std::vector<TodoSection> visibleTodoSections(const TodoList& list);
 // Index of `name` in `lists`, adding it when it is new. Returns kNoList for an
 // empty name or when there is no room left.
 uint8_t internListName(std::vector<std::string>& lists, std::string name);
-inline uint8_t internTodoList(TodoList& list, std::string name) {
-  return internListName(list.lists, std::move(name));
-}
+inline uint8_t internTodoList(TodoList& list, std::string name) { return internListName(list.lists, std::move(name)); }
 
 // Applies a full list pushed by the companion. `incoming` items carry no
 // tombstones and no localRev. `baselineValid` is false when the companion's

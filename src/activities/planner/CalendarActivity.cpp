@@ -3,13 +3,12 @@
 #include <HalStorage.h>
 #include <I18n.h>
 #include <Logging.h>
+#include <Memory.h>
 #include <PlannerDate.h>
 
 #include <algorithm>
 #include <cstdio>
 #include <mutex>
-
-#include <Memory.h>
 
 #include "CalendarEventActivity.h"
 #include "PlannerFormat.h"

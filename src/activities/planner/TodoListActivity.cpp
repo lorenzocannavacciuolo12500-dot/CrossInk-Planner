@@ -125,10 +125,9 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
   for (const Row& row : rows) {
     if (row.heading) {
       // Counted on the whole list, so a folded list still says how many it holds.
-      const auto count = static_cast<unsigned>(
-          std::count_if(list.items.begin(), list.items.end(), [&row](const planner::TodoItem& item) {
-            return !item.deleted && item.listIndex == row.listIndex;
-          }));
+      const auto count = static_cast<unsigned>(std::count_if(
+          list.items.begin(), list.items.end(),
+          [&row](const planner::TodoItem& item) { return !item.deleted && item.listIndex == row.listIndex; }));
       char text[48];
       std::snprintf(text, sizeof(text), tr(STR_PLANNER_LIST_TASKS_FORMAT), count);
       std::string subtitle = text;

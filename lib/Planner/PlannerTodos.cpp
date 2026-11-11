@@ -1,8 +1,8 @@
 #include "PlannerTodos.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <unordered_map>
 #include <utility>
 
@@ -168,28 +168,27 @@ std::vector<TodoSection> visibleTodoSections(const TodoList& list) {
         break;
       }
     }
-    std::stable_sort(section.items.begin(), section.items.end(),
-                     [&list, byHand](const uint16_t a, const uint16_t b) {
-                       const TodoItem& x = list.items[a];
-                       const TodoItem& y = list.items[b];
-                       if (byHand) {
-                         const uint32_t px = x.order == 0 ? UINT32_MAX : x.order;
-                         const uint32_t py = y.order == 0 ? UINT32_MAX : y.order;
-                         return px < py;
-                       }
-                       if (x.done != y.done) return !x.done;
-                       if (x.done) return false;  // completed: keep list order
-                       // Dated tasks first, earliest due first; undated keep list order.
-                       const int32_t dx = x.due == 0 ? INT32_MAX : x.due;
-                       const int32_t dy = y.due == 0 ? INT32_MAX : y.due;
-                       return dx < dy;
-                     });
+    std::stable_sort(section.items.begin(), section.items.end(), [&list, byHand](const uint16_t a, const uint16_t b) {
+      const TodoItem& x = list.items[a];
+      const TodoItem& y = list.items[b];
+      if (byHand) {
+        const uint32_t px = x.order == 0 ? UINT32_MAX : x.order;
+        const uint32_t py = y.order == 0 ? UINT32_MAX : y.order;
+        return px < py;
+      }
+      if (x.done != y.done) return !x.done;
+      if (x.done) return false;  // completed: keep list order
+      // Dated tasks first, earliest due first; undated keep list order.
+      const int32_t dx = x.due == 0 ? INT32_MAX : x.due;
+      const int32_t dy = y.due == 0 ? INT32_MAX : y.due;
+      return dx < dy;
+    });
   }
   return sections;
 }
 
-void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint32_t baseline,
-                         const bool baselineValid, const std::vector<std::string>* incomingLists) {
+void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint32_t baseline, const bool baselineValid,
+                         const std::vector<std::string>* incomingLists) {
   if (!baselineValid) baseline = 0;
   if (incomingLists != nullptr) {
     // The push numbers its lists on its own: translate into the device's table.
@@ -197,8 +196,7 @@ void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint3
     translated.reserve(incomingLists->size());
     for (const auto& name : *incomingLists) translated.push_back(internTodoList(list, name));
     for (auto& item : incoming) {
-      item.listIndex =
-          item.listIndex < translated.size() ? translated[item.listIndex] : static_cast<uint8_t>(kNoList);
+      item.listIndex = item.listIndex < translated.size() ? translated[item.listIndex] : static_cast<uint8_t>(kNoList);
     }
   }
   const auto unseenByCompanion = [baseline](const TodoItem& item) { return item.localRev > baseline; };
