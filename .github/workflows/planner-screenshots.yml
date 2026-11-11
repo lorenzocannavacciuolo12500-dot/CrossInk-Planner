@@ -8,6 +8,7 @@ on:
     paths:
       - "scripts/planner_screenshots.py"
       - ".github/workflows/planner-screenshots.yml"
+      - "src/platform/PlannerPlatform.h"
   workflow_dispatch:
 
 permissions:
