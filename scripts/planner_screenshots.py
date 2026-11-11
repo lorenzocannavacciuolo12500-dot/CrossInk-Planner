@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Capture README screenshots of the Planner screens in the CrossInk simulator.
 
-Builds nothing: run `pio run -e simulator` first (on Linux add
+Needs a display with OpenGL (on a server: xvfb-run). Builds nothing: run `pio run -e simulator` first (on Linux add
 `PLATFORMIO_BUILD_FLAGS="-lssl -lcrypto -Wno-narrowing"`). The script prepares a throw-away SD
 card with sample tasks and a calendar snapshot (dates relative to today), drives
 the simulator with CROSSPOINT_SIM_INPUT_SCRIPT and saves PNG files.
@@ -126,7 +126,6 @@ def main() -> int:
         schedule = ";".join(f"{item.split(':')[0]}:{raw / (item.split(':')[1] + '.bmp')}" for item in shots.split(";"))
 
         env = os.environ.copy()
-        env.setdefault("SDL_VIDEODRIVER", "dummy")
         env["CROSSPOINT_SIM_SD"] = str(sd)
         env["CROSSPOINT_SIM_INPUT_SCRIPT"] = script
         env["CROSSPOINT_SIM_SCREENSHOTS"] = schedule

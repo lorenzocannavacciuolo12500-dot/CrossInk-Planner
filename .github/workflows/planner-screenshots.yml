@@ -39,7 +39,7 @@ jobs:
       - name: Install SDL2, OpenSSL and PlatformIO
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libsdl2-dev libssl-dev > /dev/null
+          sudo apt-get install -y -qq libsdl2-dev libssl-dev xvfb libgl1-mesa-dri > /dev/null
           uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip pillow
 
       - name: Build simulator
@@ -56,7 +56,10 @@ jobs:
         id: capture
         if: steps.build.outcome == 'success'
         continue-on-error: true
-        run: python3 scripts/planner_screenshots.py --out shots
+        env:
+          SDL_VIDEODRIVER: x11
+        # The simulator needs an accelerated SDL renderer: Xvfb + Mesa (llvmpipe).
+        run: xvfb-run -a -s "-screen 0 1280x1024x24" python3 scripts/planner_screenshots.py --out shots
 
       - name: Publish results
         if: always()
