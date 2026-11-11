@@ -20,6 +20,8 @@ concurrency:
 
 jobs:
   deploy:
+    # The site belongs to upstream CrossInk (crossink.dev); skip it in forks.
+    if: github.repository == 'uxjulia/CrossInk'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
