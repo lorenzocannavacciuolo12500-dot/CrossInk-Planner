@@ -16,6 +16,10 @@ int32_t today();
 void dayLabel(int32_t ymd, int32_t today, char* buf, size_t bufSize);
 
 // "09:00–10:00", "09:00" or "All day"; follows the 12/24h clock setting.
+// Agenda section heading, like the companion app: "Martedì 17 novembre",
+// or "Oggi, 11 novembre" / "Domani, 12 novembre".
+void longDayLabel(int32_t ymd, int32_t today, char* buf, size_t bufSize);
+
 void eventTime(const planner::CalendarEvent& event, int32_t onDay, char* buf, size_t bufSize);
 
 // Local date and time of a unix timestamp, e.g. "Today 18:40", for "Updated …".

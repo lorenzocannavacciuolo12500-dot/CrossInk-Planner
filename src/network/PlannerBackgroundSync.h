@@ -52,6 +52,7 @@ class PlannerBackgroundSync {
   size_t credentialIndex = 0;  // next saved network to try after the last used one
   bool triedLast = false;
   bool radioUsed = false;
+  bool radioBroken = false;  // WiFi.mode() failed: never touch the driver again
   uint32_t baselineMaxAlloc = 0;
   char ip_[16] = {};
 

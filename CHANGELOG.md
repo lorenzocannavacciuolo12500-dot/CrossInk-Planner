@@ -11,9 +11,15 @@
 - The To-Do List and Calendar join the saved Wi-Fi in the background so the companion app can sync while they are open; the header shows the connection state and the page refreshes after a sync.
 - Going to sleep on the To-Do List or Calendar reopens that page on wake-up.
 - "Agenda" sleep screen: today's date, today's events and the open tasks.
+- The Calendar page is laid out like the companion app: a heading per day with its event count, then each event's title with time, place and calendar below.
+
+### Fixed
+
+- Opening the To-Do List or Calendar from Home could crash the reader (`esp_netif_create_default_wifi_sta` assert / `abort()`): Home stayed in memory under the page, leaving too little heap for Wi-Fi. The pages now replace Home, and background Wi-Fi is not started when free memory is too low.
 
 ### Changed
 
+- The "Quick Resume" sleep screen is now called "Last Screen". On the To-Do List and Calendar it keeps the page without page dots, battery, sync status, selection, "+ Add task" and button hints; on Home and in the reader it shows the book cover, like the Cover mode.
 - On Home, To-Do List and Calendar the page dots sit in the centre of the status bar; an item configured there (such as the clock) moves to the left.
 
 ## [v1.6.1] - 2026-10-03

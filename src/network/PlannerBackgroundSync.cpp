@@ -17,6 +17,11 @@ namespace {
 // The heap counts as "back to normal" after Wi-Fi when its largest free block
 // is at least this share of the one measured before the radio started.
 constexpr uint32_t kDefragPercent = 85;
+// Starting the Wi-Fi driver, lwIP and the web server takes roughly 60-70 KB on
+// the C3, and esp_netif aborts (assert, no error code) when it cannot allocate.
+// Below these margins the radio is not started at all.
+constexpr uint32_t kMinFreeHeapForWifi = 90 * 1024;
+constexpr uint32_t kMinLargestBlockForWifi = 32 * 1024;
 }  // namespace
 
 PlannerBackgroundSync::PlannerBackgroundSync() = default;
@@ -60,6 +65,12 @@ bool PlannerBackgroundSync::beginNextNetwork() {
     if (next->ssid != last) cred = std::move(next);
   }
 
+  const bool radioOff = WiFi.getMode() == WIFI_MODE_NULL;
+  if (radioOff && (ESP.getFreeHeap() < kMinFreeHeapForWifi || ESP.getMaxAllocHeap() < kMinLargestBlockForWifi)) {
+    LOG_ERR("PLNSYNC", "Not enough memory for Wi-Fi: free=%u maxAlloc=%u", ESP.getFreeHeap(), ESP.getMaxAllocHeap());
+    return false;
+  }
+
   // The radio needs full CPU speed; once Wi-Fi is on, the power manager keeps
   // it there by itself (HalPowerManager::setPowerSaving).
   HalPowerManager::Lock powerLock;
@@ -70,7 +81,10 @@ bool PlannerBackgroundSync::beginNextNetwork() {
   LOG_INF("PLNSYNC", "Joining %s free=%u maxAlloc=%u", cred->ssid.c_str(), ESP.getFreeHeap(), ESP.getMaxAllocHeap());
   WiFi.persistent(false);  // credentials live in WifiCredentialStore, not in NVS
   if (!WiFi.mode(WIFI_STA)) {
+    // The driver may be half initialised: do not call into it again, the
+    // caller reboots when leaving the page (stop() returns true).
     LOG_ERR("PLNSYNC", "Could not enable station mode");
+    radioBroken = true;
     return false;
   }
   WiFi.setSortMethod(WIFI_CONNECT_AP_BY_SIGNAL);
@@ -158,6 +172,11 @@ bool PlannerBackgroundSync::poll() {
 }
 
 void PlannerBackgroundSync::shutdownRadio() {
+  if (radioBroken) {
+    server.reset();
+    ip_[0] = '\0';
+    return;
+  }
   if (server) {
     if (server->isRunning()) server->stop();
     server.reset();
@@ -175,6 +194,11 @@ bool PlannerBackgroundSync::stop() {
   setState(State::Off);
   if (!radioUsed) return false;
   radioUsed = false;
+  if (radioBroken) {
+    radioBroken = false;
+    LOG_INF("PLNSYNC", "Wi-Fi driver left half started; rebooting to clear it");
+    return true;
+  }
   const uint32_t maxAlloc = ESP.getMaxAllocHeap();
   LOG_INF("PLNSYNC", "Wi-Fi off free=%u maxAlloc=%u (before %u)", ESP.getFreeHeap(), maxAlloc, baselineMaxAlloc);
   return static_cast<uint64_t>(maxAlloc) * 100 < static_cast<uint64_t>(baselineMaxAlloc) * kDefragPercent;

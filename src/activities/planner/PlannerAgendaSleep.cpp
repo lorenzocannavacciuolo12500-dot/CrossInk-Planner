@@ -26,7 +26,6 @@ constexpr int kTop = 36;
 constexpr int kBottom = 24;
 constexpr int kSectionGap = 22;
 constexpr int kRowGap = 8;
-constexpr int kTimeColumn = 118;  // fits "09:00-10:00" in UI_10
 constexpr int kIconGap = 10;
 
 // One line of text, truncated to `maxWidth`; returns the next free y.
@@ -89,6 +88,9 @@ void draw(const GfxRenderer& renderer) {
     // Events get at most half of the remaining height; tasks get the rest.
     y = drawSectionTitle(renderer, y, tr(STR_PLANNER_TODAY), width);
     const int eventsBottom = y + (footerTop - y) / 2;
+    // Time column sized from the widest time text ("22:00-23:30"), so ranges
+    // are not truncated whatever the font metrics.
+    const int timeColumn = renderer.getTextWidth(UI_10_FONT_ID, "00:00-00:00") + 2 * kIconGap;
     size_t shown = 0;
     size_t total = 0;
     for (const auto& ev : calendar.events) {
@@ -98,8 +100,8 @@ void draw(const GfxRenderer& renderer) {
       if (y + 2 * bodyLine > eventsBottom) continue;
       char time[24];
       PlannerFormat::eventTime(ev, today, time, sizeof(time));
-      drawLine(renderer, UI_10_FONT_ID, kMargin, y, time, kTimeColumn - kIconGap);
-      y = drawLine(renderer, UI_10_FONT_ID, kMargin + kTimeColumn, y, ev.title.c_str(), width - kTimeColumn) + kRowGap;
+      drawLine(renderer, UI_10_FONT_ID, kMargin, y, time, timeColumn - kIconGap);
+      y = drawLine(renderer, UI_10_FONT_ID, kMargin + timeColumn, y, ev.title.c_str(), width - timeColumn) + kRowGap;
       shown++;
     }
     if (total == 0) {

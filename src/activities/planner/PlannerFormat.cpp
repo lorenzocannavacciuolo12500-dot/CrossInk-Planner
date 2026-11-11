@@ -64,6 +64,32 @@ void dayLabel(const int32_t ymd, const int32_t todayYmd, char* buf, const size_t
                 I18N.get(kMonths[planner::ymdMonth(ymd) - 1]));
 }
 
+void longDayLabel(const int32_t ymd, const int32_t todayYmd, char* buf, const size_t bufSize) {
+  if (bufSize == 0) return;
+  if (!planner::isValidYmd(ymd)) {
+    buf[0] = '\0';
+    return;
+  }
+  static const StrId kWeekdays[] = {StrId::STR_PLANNER_WEEKDAY_SUN, StrId::STR_PLANNER_WEEKDAY_MON,
+                                    StrId::STR_PLANNER_WEEKDAY_TUE, StrId::STR_PLANNER_WEEKDAY_WED,
+                                    StrId::STR_PLANNER_WEEKDAY_THU, StrId::STR_PLANNER_WEEKDAY_FRI,
+                                    StrId::STR_PLANNER_WEEKDAY_SAT};
+  static const StrId kMonths[] = {StrId::STR_MONTH_JAN, StrId::STR_MONTH_FEB, StrId::STR_MONTH_MAR,
+                                  StrId::STR_MONTH_APR, StrId::STR_MONTH_MAY, StrId::STR_MONTH_JUN,
+                                  StrId::STR_MONTH_JUL, StrId::STR_MONTH_AUG, StrId::STR_MONTH_SEP,
+                                  StrId::STR_MONTH_OCT, StrId::STR_MONTH_NOV, StrId::STR_MONTH_DEC};
+  const char* month = I18N.get(kMonths[planner::ymdMonth(ymd) - 1]);
+  const int day = planner::ymdDay(ymd);
+  if (todayYmd != 0) {
+    const int64_t delta = planner::ymdToDays(ymd) - planner::ymdToDays(todayYmd);
+    if (delta == 0 || delta == 1) {
+      std::snprintf(buf, bufSize, "%s, %d %s", I18N.get(delta == 0 ? StrId::STR_PLANNER_TODAY : StrId::STR_PLANNER_TOMORROW), day, month);
+      return;
+    }
+  }
+  std::snprintf(buf, bufSize, "%s %d %s", I18N.get(kWeekdays[planner::weekdayOf(ymd)]), day, month);
+}
+
 void eventTime(const planner::CalendarEvent& event, const int32_t onDay, char* buf, const size_t bufSize) {
   if (bufSize == 0) return;
   // An all-day event, or a middle day of a multi-day event, has no clock time.

@@ -12,9 +12,17 @@ constexpr int kPitch = 24;  // distance between dot centres
 constexpr int kPageCount = 3;
 // Render task only (Home and Planner renders), so no synchronisation needed.
 bool gCenterReserved = false;
+bool gClockOnly = false;
 }  // namespace
 
 bool centerReserved() { return gCenterReserved; }
+bool clockOnlyStatusBar() { return gClockOnly; }
+ClockOnlyStatusBar::ClockOnlyStatusBar(const bool active) : active(active) {
+  if (active) gClockOnly = true;
+}
+ClockOnlyStatusBar::~ClockOnlyStatusBar() {
+  if (active) gClockOnly = false;
+}
 CenterReservation::CenterReservation(const bool active) : active(active) {
   if (active) gCenterReserved = true;
 }

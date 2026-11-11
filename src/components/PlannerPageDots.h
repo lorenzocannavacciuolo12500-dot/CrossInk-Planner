@@ -27,4 +27,18 @@ class CenterReservation {
  private:
   bool active;
 };
+
+// While alive, the screen status bar shows only its clock / date items (the
+// "Last screen" sleep frame of the planner pages: no battery, no dots).
+bool clockOnlyStatusBar();
+class ClockOnlyStatusBar {
+ public:
+  explicit ClockOnlyStatusBar(bool active);
+  ~ClockOnlyStatusBar();
+  ClockOnlyStatusBar(const ClockOnlyStatusBar&) = delete;
+  ClockOnlyStatusBar& operator=(const ClockOnlyStatusBar&) = delete;
+
+ private:
+  bool active;
+};
 }  // namespace PlannerPageDots

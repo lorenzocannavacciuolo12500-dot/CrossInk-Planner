@@ -31,6 +31,7 @@ class TodoListActivity final : public PlannerListActivity {
   bool supportsLongPress() const override { return true; }
   void onSideButton(bool next) override;
   void reloadData() override { reload(); }
+  bool isActionRow(const int index) const override { return index >= addRowIndex(); }
   bool pageDot(PlannerPageDots::Page& page) const override {
     page = PlannerPageDots::Page::Todo;
     return true;

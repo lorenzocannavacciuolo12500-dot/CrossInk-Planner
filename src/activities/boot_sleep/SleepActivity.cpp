@@ -38,6 +38,7 @@
 #include "RecentBooksStore.h"
 #include "SleepCoverAssets.h"
 #include "activities/planner/PlannerAgendaSleep.h"
+#include "activities/planner/PlannerListActivity.h"
 #include "activities/reader/ReaderUtils.h"
 #include "components/UITheme.h"
 #include "components/themes/dashboard/DashboardTheme.h"
@@ -520,16 +521,30 @@ void SleepActivity::onEnter() {
       (fromTimeout &&
        SETTINGS.quickResumeSleepScreen == CrossPointSettings::QUICK_RESUME_SLEEP_SCREEN::QUICK_RESUME_AFTER_TIMEOUT);
 
-  // Sleep screens draw directly, outside ActivityManager's normal render path.
-  // Quick Resume retains the current screen, so preserve its Night Mode output;
-  // generated sleep screens continue to use their normal polarity.
-  display.setInverted(renderQuickResume && SETTINGS.screenInverted != 0);
+  // "Last screen" (CrossInk's Quick Resume mode, renamed in CrossInk-Planner):
+  // on the To-Do List / Calendar it shows that page without its live-only parts
+  // (drawn by PlannerListActivity::prepareSleepFrame()); anywhere else it shows
+  // the book cover like the Cover mode. The "on timeout" variant still keeps
+  // the exact last screen outside the planner pages.
+  const bool lastScreenMode = SETTINGS.sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::QUICK_RESUME;
+  const bool plannerFrame = renderQuickResume && PlannerListActivity::takeSleepFrame();
+  const bool keepFrame = plannerFrame || (renderQuickResume && !lastScreenMode);
 
-  if (renderQuickResume) {
+  // Sleep screens draw directly, outside ActivityManager's normal render path.
+  // A retained screen keeps its Night Mode output; generated sleep screens
+  // continue to use their normal polarity.
+  display.setInverted(keepFrame && SETTINGS.screenInverted != 0);
+
+  if (plannerFrame) {
+    renderer.displayBuffer(HalDisplay::HALF_REFRESH, TURN_OFF_SCREEN_AFTER_SLEEP_REFRESH);
+    return;
+  }
+  if (keepFrame) {
     return renderLastScreenSleepScreen();
   }
 
-  const auto sleepScreen = SETTINGS.sleepScreen;
+  const auto sleepScreen =
+      renderQuickResume ? static_cast<uint8_t>(CrossPointSettings::SLEEP_SCREEN_MODE::COVER) : SETTINGS.sleepScreen;
   const bool sleepScreenUsesRecentBooks = sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::READING_STATS_SLEEP ||
                                           sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::MINIMAL_SLEEP ||
                                           sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::MINIMAL_STATS_SLEEP ||

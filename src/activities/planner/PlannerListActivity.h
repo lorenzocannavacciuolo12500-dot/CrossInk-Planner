@@ -37,6 +37,14 @@ class PlannerListActivity : public Activity {
   // Refresh mode of the first paint (e.g. a cleaner one right after wake-up).
   void setFirstRefresh(HalDisplay::RefreshMode mode) { firstRefresh = mode; }
 
+  // "Last screen" sleep: redraw the open To-Do List / Calendar into the frame
+  // buffer without the live-only parts (page dots, battery, sync status,
+  // selection, action rows, button hints). Called before going to sleep;
+  // the sleep screen then shows the buffer. No-op when no planner page is open.
+  static void prepareSleepFrame();
+  // True once, after prepareSleepFrame() drew a frame.
+  static bool takeSleepFrame();
+
  protected:
   using UiApp = freeink::ui::FreeInkApp<20, 4>;
 
@@ -56,6 +64,9 @@ class PlannerListActivity : public Activity {
   virtual bool pageDot(PlannerPageDots::Page& /*page*/) const { return false; }
   // Reload from PlannerStore after the companion app changed the data.
   virtual void reloadData() {}
+  // Rows that only make sense interactively (e.g. "+ Add task"): hidden in
+  // the sleep frame.
+  virtual bool isActionRow(int /*index*/) const { return false; }
 
   // Keeps the selection inside the list after rows were added or removed.
   void clampSelection();
@@ -74,6 +85,10 @@ class PlannerListActivity : public Activity {
   bool handleSideButtons();
 
   HalDisplay::RefreshMode firstRefresh = HalDisplay::FAST_REFRESH;
+  bool sleepFrame = false;
+  static PlannerListActivity* activeScreen;  // the open pager page, if any
+  static bool sleepFrameReady;
+  void drawFrame();
   bool firstPaintDone = false;
   PlannerBackgroundSync sync;
   bool syncEnabled = false;

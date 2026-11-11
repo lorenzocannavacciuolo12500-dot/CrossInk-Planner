@@ -53,7 +53,7 @@ void CalendarActivity::onExit() {
   calendar = planner::Calendar{};
   std::vector<Row>().swap(agenda);
   std::vector<std::string>().swap(subtitles);
-  std::vector<std::string>().swap(values);
+  std::vector<std::string>().swap(headings);
   PlannerListActivity::onExit();
 }
 
@@ -88,29 +88,49 @@ const char* CalendarActivity::emptyText() const { return tr(STR_PLANNER_CAL_EMPT
 
 void CalendarActivity::fillItems(std::vector<fui::ListItem>& items) {
   subtitles.clear();
-  values.clear();
+  headings.clear();
   subtitles.reserve(agenda.size());
-  values.reserve(agenda.size());
+  headings.reserve(agenda.size());  // upper bound: one per row
 
-  for (const Row& row : agenda) {
+  for (size_t r = 0; r < agenda.size(); r++) {
+    const Row& row = agenda[r];
     const auto& ev = calendar.events[row.event];
-    char day[32];
-    char time[24];
-    PlannerFormat::dayLabel(row.day, todayYmd, day, sizeof(day));
-    PlannerFormat::eventTime(ev, row.day, time, sizeof(time));
 
-    std::string subtitle = day;
+    fui::ListItem item;
+    item.label = ev.title.c_str();
+
+    // Day heading before the first event of each day, with its event count.
+    if (r == 0 || agenda[r - 1].day != row.day) {
+      unsigned count = 0;
+      for (size_t k = r; k < agenda.size() && agenda[k].day == row.day; k++) count++;
+      char day[48];
+      char countText[24];
+      PlannerFormat::longDayLabel(row.day, todayYmd, day, sizeof(day));
+      if (count == 1) {
+        std::snprintf(countText, sizeof(countText), "%s", tr(STR_PLANNER_EVENT_COUNT_ONE));
+      } else {
+        std::snprintf(countText, sizeof(countText), tr(STR_PLANNER_EVENT_COUNT_FORMAT), count);
+      }
+      std::string heading = day;
+      heading += " - ";
+      heading += countText;
+      headings.push_back(std::move(heading));
+      item.sectionHeading = headings.back().c_str();
+    }
+
+    char time[24];
+    PlannerFormat::eventTime(ev, row.day, time, sizeof(time));
+    std::string subtitle = time;
     if (!ev.location.empty()) {
       subtitle += " - ";
       subtitle += ev.location;
     }
+    if (!ev.calendar.empty()) {
+      subtitle += " - ";
+      subtitle += ev.calendar;
+    }
     subtitles.push_back(std::move(subtitle));
-    values.emplace_back(time);
-
-    fui::ListItem item;
-    item.label = ev.title.c_str();
     item.subtitle = subtitles.back().c_str();
-    item.value = values.back().c_str();
     items.push_back(item);
   }
 

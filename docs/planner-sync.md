@@ -14,7 +14,9 @@ Going to sleep on the To-Do List or Calendar reopens that page on wake-up (Back 
 returns Home; holding Back while waking goes straight Home). The side buttons cannot
 wake the device: on the X3/X4 they are read through an ADC ladder that is not a
 deep-sleep wake source, so Power is still needed. To see the planner without waking
-the device, choose **Settings → Display → Sleep Screen → Agenda**: the sleep screen
+the device, choose **Settings → Display → Sleep Screen → Agenda** (or **Last Screen**,
+which keeps the To-Do List / Calendar page itself, without page dots, battery, sync status,
+selection, "+ Add task" and button hints; elsewhere Last Screen shows the book cover): the sleep screen
 then shows the date, today's events and the open tasks (as of the last sync).
 
 - **To-Do List** — tasks stored on the SD card. Tasks stay on the device until they are
@@ -37,7 +39,10 @@ the date: "Connecting…", "Sync <ip>", "No saved Wi-Fi" (join a network once th
 File Transfer) or "Wi-Fi unavailable". When the companion changes tasks, the calendar
 or the clock, the page reloads. Leaving the page turns Wi-Fi off; if the largest free
 heap block is then below 85 % of what it was before Wi-Fi started, the reader reboots
-silently to Home to clear fragmentation (like File Transfer). Serial log tag: `PLNSYNC`.
+silently to Home to clear fragmentation (like File Transfer). Wi-Fi is not started when
+free heap is under 90 KB or the largest block under 32 KB (esp_netif aborts instead of
+failing when it cannot allocate); the To-Do List and Calendar replace Home rather than
+stacking on it so its caches are freed first. Serial log tag: `PLNSYNC`.
 
 ## Files on the SD card
 

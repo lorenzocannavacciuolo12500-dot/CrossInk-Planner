@@ -96,6 +96,7 @@ inline esp_sleep_wakeup_cause_t esp_sleep_get_wakeup_cause() { return ESP_SLEEP_
 #include "activities/boot_sleep/ImageFolderIndex.h"
 #include "activities/home/BookActions.h"
 #include "activities/planner/CalendarActivity.h"
+#include "activities/planner/PlannerListActivity.h"
 #include "activities/planner/TodoListActivity.h"
 #include "activities/reader/KOReaderSyncActivity.h"
 #include "activities/reader/ReaderUtils.h"
@@ -1100,6 +1101,10 @@ void enterDeepSleep(bool fromTimeout) {
   // Every sleep mode leaves a complete retained frame on the e-ink panel. Keep
   // it visible until the first useful reader or Home paint replaces it.
   APP_STATE.showBootScreen = false;
+
+  // "Last screen" on a planner page: redraw it without the live-only parts
+  // while the page still exists (goToSleep() destroys it).
+  if (isQuickResumeSleep) PlannerListActivity::prepareSleepFrame();
 
   // Commit to sleeping before goToSleep() runs the outgoing activity's onExit():
   // a WiFi activity would otherwise silentRestart() here and reboot instead.

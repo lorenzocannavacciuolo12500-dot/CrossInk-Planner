@@ -2443,7 +2443,10 @@ void HomeActivity::onPlannerScreenOpen(const PlannerScreen screen) {
     LOG_ERR("HOME", "OOM: planner screen");
     return;
   }
-  startActivityForResult(std::move(next), [this](const ActivityResult&) { requestUpdate(); });
+  // Replace Home instead of stacking on it: Home keeps cover thumbnails and
+  // other caches alive (well over 100 KB on the C3), which left the To-Do List
+  // and Calendar too little heap to start Wi-Fi. Leaving them goes Home again.
+  activityManager.replaceActivity(std::move(next));
 }
 
 void HomeActivity::onPlannerOpen() {

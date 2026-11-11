@@ -47,12 +47,32 @@ void PlannerListActivity::onEnter() {
                                                                     : PlannerStore::ResumePage::Calendar);
     seenExternalChanges = PlannerStore::externalChangeCount();
     sync.start(renderer);
+    activeScreen = this;
   }
+  sleepFrame = false;
   updateSyncLabel();
   requestUpdate();
 }
 
+PlannerListActivity* PlannerListActivity::activeScreen = nullptr;
+bool PlannerListActivity::sleepFrameReady = false;
+
+void PlannerListActivity::prepareSleepFrame() {
+  if (!activeScreen) return;
+  RenderLock lock;
+  activeScreen->sleepFrame = true;  // later renders stay clean and off-panel too
+  activeScreen->drawFrame();
+  sleepFrameReady = true;
+}
+
+bool PlannerListActivity::takeSleepFrame() {
+  const bool ready = sleepFrameReady;
+  sleepFrameReady = false;
+  return ready;
+}
+
 void PlannerListActivity::onExit() {
+  if (activeScreen == this) activeScreen = nullptr;
   if (syncEnabled) {
     PlannerStore::setActivePage(PlannerStore::ResumePage::None);
     syncEnabled = false;
@@ -238,11 +258,23 @@ void PlannerListActivity::buildListScreen(UiApp::ScreenType& screen) {
   rows.reserve(static_cast<size_t>(count));
   fillItems(rows);
   for (size_t i = 0; i < rows.size(); i++) rows[i].actionValue = static_cast<int16_t>(i);
+  if (sleepFrame) {
+    size_t kept = 0;
+    for (size_t i = 0; i < rows.size(); i++) {
+      if (!isActionRow(static_cast<int>(i))) rows[kept++] = rows[i];
+    }
+    rows.resize(kept);
+    if (rows.empty()) {
+      const char* text = emptyText();
+      screen.centeredText(text ? text : tr(STR_PLANNER_ALL_DONE), screen.theme().bodyText);
+      return;
+    }
+  }
 
   fui::ListProps props;
   props.items = rows.data();
   props.count = static_cast<uint16_t>(rows.size());
-  props.selectedIndex = static_cast<int16_t>(selectedIndex);
+  props.selectedIndex = static_cast<int16_t>(sleepFrame ? -1 : selectedIndex);
   props.action = ACTION_ROW;
   props.inputMask =
       static_cast<uint16_t>(supportsLongPress() ? (fui::InputTouch | fui::InputLongPress) : fui::InputTouch);
@@ -254,16 +286,25 @@ void PlannerListActivity::buildListScreen(UiApp::ScreenType& screen) {
 }
 
 void PlannerListActivity::render(RenderLock&&) {
+  drawFrame();
+  if (sleepFrame) return;  // the sleep screen refreshes the panel
+  renderer.displayBuffer(firstPaintDone ? HalDisplay::FAST_REFRESH : firstRefresh);
+  firstPaintDone = true;
+}
+
+void PlannerListActivity::drawFrame() {
   PlannerPageDots::Page page;
-  const bool showDots = pageDot(page);
-  // The page dots own the status-bar centre while this screen renders.
+  const bool showDots = pageDot(page) && !sleepFrame;
+  // The page dots own the status-bar centre while this screen renders; the
+  // sleep frame keeps only the clock / date of the status bar.
   const PlannerPageDots::CenterReservation dotsCenter(showDots);
+  const PlannerPageDots::ClockOnlyStatusBar clockOnly(sleepFrame);
   renderer.clearScreen();
   if (mappedInput.hasTouchHardware()) {
     TouchHeaderBackButton::drawCompact(renderer, screenTitle());
   } else {
     // While syncing in the background the status replaces the date.
-    if (syncLabel[0] != '\0') {
+    if (syncLabel[0] != '\0' && !sleepFrame) {
       CompactHeader::drawTitleWithStatus(renderer, screenTitle(), syncLabel);
     } else {
       CompactHeader::drawTitle(renderer, screenTitle(), true);
@@ -273,10 +314,9 @@ void PlannerListActivity::render(RenderLock&&) {
   uiReady = false;
   app.render();
   uiReady = true;
+  if (sleepFrame) return;
 
   const auto labels =
       mappedInput.mapLabels(mappedInput.withBackArrow(tr(STR_BACK)), confirmHint(), tr(STR_DIR_UP), tr(STR_DIR_DOWN));
   GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
-  renderer.displayBuffer(firstPaintDone ? HalDisplay::FAST_REFRESH : firstRefresh);
-  firstPaintDone = true;
 }
