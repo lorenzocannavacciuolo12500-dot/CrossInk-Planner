@@ -25,7 +25,7 @@ jobs:
         id: cfg
         run: |
           grep -E '^[A-Z]+=' .github/planner-release/release.env >> "$GITHUB_OUTPUT"
-          . .github/planner-release/release.env
+          TAG=$(sed -n "s/^TAG=//p" .github/planner-release/release.env)
           if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
             echo "Tag $TAG already exists, nothing to do."
             echo "skip=true" >> "$GITHUB_OUTPUT"
