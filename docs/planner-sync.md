@@ -21,7 +21,8 @@ which keeps the To-Do List / Calendar page itself, without page dots, battery, s
 selection, "+ Add task" and button hints; elsewhere Last Screen shows the book cover): the sleep screen
 then shows the date, today's events and the open tasks (as of the last sync).
 
-- **To-Do List** — tasks stored on the SD card. Tasks stay on the device until they are
+- **To-Do List** — tasks stored on the SD card, grouped by the lists made in the
+  companion app (the list's name is a row; Confirm on it folds the list away). Tasks stay on the device until they are
   deleted (on the device or in the companion app). Tasks can be checked off and
   added on the device; the companion app can add, edit and delete them.
 - **Calendar** — a read-only agenda of the next days, copied by the companion app
@@ -57,6 +58,12 @@ stacking on it so its caches are freed first. Serial log tag: `PLNSYNC`.
 
 Both files are rewritten atomically (`.tmp` then rename, `.bak` kept until the
 replacement succeeds). Deleting the folder resets the Planner.
+
+Each task also carries `list` (the name of the list it belongs to, empty for none)
+and `order` (the position chosen by hand in the companion app, 0 for none). The
+reader keeps at most 12 list names of 40 bytes; names no task points at any more
+are forgotten at the next sync. Inside a block the reader follows `order` when the
+app sent any, otherwise open tasks by due date with the completed ones last.
 
 ### `todos.json`
 

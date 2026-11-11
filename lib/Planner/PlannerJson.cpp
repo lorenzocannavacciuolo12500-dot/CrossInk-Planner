@@ -1,9 +1,11 @@
 #include "PlannerJson.h"
 
+#include <PlannerTodos.h>
 #include <StreamingJsonParser.h>
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <new>
@@ -113,6 +115,10 @@ void writeTodoListJson(const TodoList& list, const TodoJsonMode mode, const Json
     out.boolean(item.deleted);
     out.key("updatedAt");
     out.num(item.updatedAt);
+    out.key("list");
+    out.str(item.listIndex < list.lists.size() ? list.lists[item.listIndex] : std::string());
+    out.key("order");
+    out.num(item.order);
     if (mode == TodoJsonMode::File) {
       out.key("localRev");
       out.num(item.localRev);
@@ -418,6 +424,7 @@ void PlannerJsonDecoder::handleTopScalar(const char* str, const size_t len, cons
 
 void PlannerJsonDecoder::beginItem() {
   inItem = true;
+  pendingListName.clear();
   pendingValid = true;
   pendingTodo = TodoItem{};
   pendingEvent = CalendarEvent{};
@@ -469,6 +476,10 @@ void PlannerJsonDecoder::handleItemScalar(const char* str, const size_t len, con
     t.updatedAt = num;
   } else if (isNum && keyIs(key, "localRev") && kind == Kind::TodoFile && num >= 0) {
     t.localRev = static_cast<uint32_t>(num);
+  } else if (str && keyIs(key, "list")) {
+    pendingListName.assign(str, len > kMaxListNameBytes * 4 ? kMaxListNameBytes * 4 : len);
+  } else if (isNum && keyIs(key, "order") && num >= 0) {
+    t.order = num > UINT16_MAX ? UINT16_MAX : static_cast<uint16_t>(num);
   }
 }
 
@@ -494,7 +505,10 @@ void PlannerJsonDecoder::endItem() {
   }
 
   TodoItem& t = pendingTodo;
+  std::vector<std::string>& lists = kind == Kind::TodoFile ? todoFile->lists : todoPush->lists;
   std::vector<TodoItem>& items = kind == Kind::TodoFile ? todoFile->items : todoPush->items;
+  t.listIndex = internListName(lists, std::move(pendingListName));
+  pendingListName.clear();
   if (kind == Kind::TodoPush) {
     // The companion deletes by omission; a tombstone in a push is ignored rather
     // than resurrected.

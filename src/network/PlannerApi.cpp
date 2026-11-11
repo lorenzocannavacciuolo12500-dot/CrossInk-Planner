@@ -241,7 +241,7 @@ void handlePostTodos(WebServer& server) {
     visibleBefore = planner::visibleTodosHash(todos);
     const bool baselineValid = push.hasBaseline && push.storeId == todos.storeId;
     if (!baselineValid) LOG_INF("PLN", "Companion cursor not valid for this store; merging without it");
-    planner::applyCompanionTodos(todos, std::move(push.items), push.baseline, baselineValid);
+    planner::applyCompanionTodos(todos, std::move(push.items), push.baseline, baselineValid, &push.lists);
     if (!PlannerStore::saveTodos(todos)) {
       server.send(500, "text/plain", "Could not save tasks");
       return;

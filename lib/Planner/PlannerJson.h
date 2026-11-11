@@ -34,6 +34,8 @@ struct CompanionTodoPush {
   std::string storeId;
   uint32_t baseline = 0;
   bool hasBaseline = false;
+  // Names of the lists the push mentions; items point into this by index.
+  std::vector<std::string> lists;
   std::vector<TodoItem> items;
 };
 
@@ -96,6 +98,8 @@ class PlannerJsonDecoder {
   char key[24] = {};
 
   TodoItem pendingTodo;
+  // Name of the list the current task names; resolved into an index at endItem().
+  std::string pendingListName;
   CalendarEvent pendingEvent;
   bool pendingValid = true;
   size_t skipped = 0;

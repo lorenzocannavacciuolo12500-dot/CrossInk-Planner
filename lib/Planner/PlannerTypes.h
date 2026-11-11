@@ -17,6 +17,10 @@ constexpr size_t kMaxStoreIdBytes = 16;
 constexpr size_t kMaxTitleBytes = 120;
 constexpr size_t kMaxLocationBytes = 80;
 constexpr size_t kMaxCalendarBytes = 40;
+constexpr size_t kMaxLists = 12;
+constexpr size_t kMaxListNameBytes = 40;
+// A task that belongs to no list.
+constexpr uint8_t kNoList = 0xFF;
 constexpr int kMinutesPerDay = 24 * 60;
 
 // Dates are stored as yyyymmdd integers (20261110); 0 means "no date".
@@ -31,12 +35,18 @@ struct TodoItem {
   int64_t updatedAt = 0;
   // Device revision of the last on-device change; 0 = state came from the companion.
   uint32_t localRev = 0;
+  // Index into TodoList::lists, or kNoList. Lists are made in the companion app.
+  uint8_t listIndex = kNoList;
+  // Position chosen by hand in the companion app; 0 means "no position".
+  uint16_t order = 0;
 };
 
 struct TodoList {
   std::string storeId;
   // Incremented by every change made on the device. Used as the sync cursor.
   uint32_t revision = 0;
+  // Names of the lists, in the order the companion app sends them.
+  std::vector<std::string> lists;
   std::vector<TodoItem> items;
 };
 

@@ -31,10 +31,32 @@ size_t countOpenTodos(const TodoList& list);
 // due date, then undated), then completed ones; ties keep list order.
 std::vector<uint16_t> visibleTodoOrder(const TodoList& list);
 
+// One block of the To-Do screen: the tasks with no list, then one block per
+// list, like the companion app. `listIndex` is kNoList for the first block.
+struct TodoSection {
+  uint8_t listIndex = kNoList;
+  std::vector<uint16_t> items;
+};
+
+// The visible tasks grouped by list. Inside a block the order follows the
+// companion app's positions when it sent any, otherwise open tasks by due date
+// with the completed ones last.
+std::vector<TodoSection> visibleTodoSections(const TodoList& list);
+
+// Index of `name` in `lists`, adding it when it is new. Returns kNoList for an
+// empty name or when there is no room left.
+uint8_t internListName(std::vector<std::string>& lists, std::string name);
+inline uint8_t internTodoList(TodoList& list, std::string name) {
+  return internListName(list.lists, std::move(name));
+}
+
 // Applies a full list pushed by the companion. `incoming` items carry no
 // tombstones and no localRev. `baselineValid` is false when the companion's
 // storeId does not match (all device changes are then treated as unseen).
-void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint32_t baseline, bool baselineValid);
+// `incomingLists` is the push's own name table: the indices on `incoming` are
+// translated into the device's table. Pass nullptr when there is none.
+void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint32_t baseline, bool baselineValid,
+                         const std::vector<std::string>* incomingLists = nullptr);
 
 // Keeps the list within kMaxTodos, dropping tombstones first, then the oldest
 // completed tasks, then the oldest open ones. Returns how many were dropped.

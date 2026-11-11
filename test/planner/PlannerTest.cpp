@@ -310,6 +310,71 @@ void testHashes() {
   y.events[0].location = "bc";
   CHECK(calendarEventsHash(x) != calendarEventsHash(y));
 }
+void testTodoLists() {
+  TodoList list;
+  list.storeId = "s1";
+  // Two lists plus a task outside them; "Spesa" was arranged by hand in the app.
+  list.items.push_back(companionItem("a", "Latte", false, 100));
+  list.items.back().listIndex = internTodoList(list, "Spesa");
+  list.items.back().order = 2;
+  list.items.push_back(companionItem("b", "Pane", false, 100));
+  list.items.back().listIndex = internTodoList(list, "Spesa");
+  list.items.back().order = 1;
+  list.items.push_back(companionItem("c", "Dentista", false, 100));
+  list.items.back().due = 20261130;
+  list.items.push_back(companionItem("d", "Bollette", false, 100));
+  list.items.back().due = 20261112;
+  list.items.push_back(companionItem("e", "Chiodi", false, 100));
+  list.items.back().listIndex = internTodoList(list, "Ferramenta");
+
+  CHECK(list.lists.size() == 2);
+  CHECK(internTodoList(list, "Spesa") == 0);   // already known
+  CHECK(internTodoList(list, "  ") == kNoList);
+
+  const auto sections = visibleTodoSections(list);
+  CHECK(sections.size() == 3);
+  CHECK(sections[0].listIndex == kNoList);
+  // No list: by due date, earliest first.
+  CHECK(sections[0].items.size() == 2 && sections[0].items[0] == 3 && sections[0].items[1] == 2);
+  // Spesa: the positions chosen in the app win.
+  CHECK(sections[1].items.size() == 2 && sections[1].items[0] == 1 && sections[1].items[1] == 0);
+  CHECK(sections[2].items.size() == 1 && sections[2].items[0] == 4);
+
+  // The list name and the position survive a trip through the file format.
+  const std::string json = encode(list, TodoJsonMode::File);
+  TodoList back;
+  CHECK(decode(json, back));
+  CHECK(back.lists.size() == 2 && back.lists[0] == "Spesa");
+  CHECK(back.items[0].listIndex == 0 && back.items[0].order == 2);
+  CHECK(back.items[2].listIndex == kNoList);
+
+  // A push numbers its own lists: the device translates them and forgets the
+  // names nothing points at any more.
+  TodoList device;
+  device.storeId = "s1";
+  std::vector<std::string> pushLists = {"Ferramenta", "Spesa"};
+  std::vector<TodoItem> push = {companionItem("x", "Viti", false, 200),
+                                companionItem("y", "Latte", false, 200)};
+  push[0].listIndex = 0;
+  push[1].listIndex = 1;
+  applyCompanionTodos(device, std::move(push), 0, true, &pushLists);
+  CHECK(device.lists.size() == 2);
+  CHECK(device.lists[device.items[0].listIndex] == "Ferramenta");
+  CHECK(device.lists[device.items[1].listIndex] == "Spesa");
+  // The next push drops one of the two lists entirely.
+  std::vector<std::string> shorter = {"Spesa"};
+  std::vector<TodoItem> second = {companionItem("y", "Latte", false, 300)};
+  second[0].listIndex = 0;
+  applyCompanionTodos(device, std::move(second), 0, true, &shorter);
+  CHECK(device.lists.size() == 1 && device.lists[0] == "Spesa");
+  CHECK(device.items.size() == 1 && device.items[0].listIndex == 0);
+
+  // A list name that is gone leaves its task in the first block.
+  list.items[4].listIndex = 9;
+  const auto orphaned = visibleTodoSections(list);
+  CHECK(orphaned[0].items.size() == 3);
+}
+
 }  // namespace
 
 int main() {
@@ -327,6 +392,7 @@ int main() {
   testMalformedJson();
   testCalendarRoundTrip();
   testCalendarLimit();
+  testTodoLists();
   testHashes();
   std::printf("planner tests: %d checks passed\n", checks);
   return 0;

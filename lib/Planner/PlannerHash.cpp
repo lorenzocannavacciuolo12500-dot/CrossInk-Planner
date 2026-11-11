@@ -37,7 +37,10 @@ uint32_t visibleTodosHash(const TodoList& list) {
     mixString(h, item.title);
     mixValue(h, item.due);
     mixValue(h, static_cast<uint8_t>(item.done ? 1 : 0));
+    mixValue(h, item.listIndex);
+    mixValue(h, item.order);
   }
+  for (const auto& name : list.lists) mixString(h, name);
   return h;
 }
 

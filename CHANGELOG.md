@@ -13,6 +13,8 @@
 - "Agenda" sleep screen: today's date, today's events and the open tasks.
 - The Calendar page is laid out like the companion app: a heading per day with its event count, then each event's title with time, place and calendar below.
 
+- To-Do List: tasks are grouped like the companion app, the ones in no list first and then one block per list. The
+  list's name is a row of its own: Confirm on it folds the list away until the reader restarts.
 - Calendar: Confirm on an event opens it on its own screen, where a long title or place is shown in full instead of
   being cut to one line.
 - Going to sleep on the inactivity timeout shows the cover of the book being read, whatever screen was open, so the

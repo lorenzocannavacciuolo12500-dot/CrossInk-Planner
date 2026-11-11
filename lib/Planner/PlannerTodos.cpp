@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdint>
 #include <unordered_map>
 #include <utility>
 
@@ -129,9 +130,77 @@ std::vector<uint16_t> visibleTodoOrder(const TodoList& list) {
   return order;
 }
 
+uint8_t internListName(std::vector<std::string>& lists, std::string name) {
+  cleanText(name, kMaxListNameBytes);
+  if (name.empty()) return kNoList;
+  for (size_t i = 0; i < lists.size(); i++) {
+    if (lists[i] == name) return static_cast<uint8_t>(i);
+  }
+  if (lists.size() >= kMaxLists) return kNoList;
+  lists.push_back(std::move(name));
+  return static_cast<uint8_t>(lists.size() - 1);
+}
+
+std::vector<TodoSection> visibleTodoSections(const TodoList& list) {
+  std::vector<TodoSection> sections;
+  sections.reserve(list.lists.size() + 1);
+  sections.push_back(TodoSection{kNoList, {}});
+  for (size_t i = 0; i < list.lists.size(); i++) {
+    sections.push_back(TodoSection{static_cast<uint8_t>(i), {}});
+  }
+
+  for (size_t i = 0; i < list.items.size(); i++) {
+    const TodoItem& item = list.items[i];
+    if (item.deleted) continue;
+    size_t at = 0;  // tasks pointing at a list that is gone fall back to "no list"
+    if (item.listIndex != kNoList && item.listIndex < list.lists.size()) {
+      at = static_cast<size_t>(item.listIndex) + 1;
+    }
+    sections[at].items.push_back(static_cast<uint16_t>(i));
+  }
+
+  for (auto& section : sections) {
+    // A block the user arranged by hand in the app keeps that arrangement.
+    bool byHand = false;
+    for (const uint16_t idx : section.items) {
+      if (list.items[idx].order != 0) {
+        byHand = true;
+        break;
+      }
+    }
+    std::stable_sort(section.items.begin(), section.items.end(),
+                     [&list, byHand](const uint16_t a, const uint16_t b) {
+                       const TodoItem& x = list.items[a];
+                       const TodoItem& y = list.items[b];
+                       if (byHand) {
+                         const uint32_t px = x.order == 0 ? UINT32_MAX : x.order;
+                         const uint32_t py = y.order == 0 ? UINT32_MAX : y.order;
+                         return px < py;
+                       }
+                       if (x.done != y.done) return !x.done;
+                       if (x.done) return false;  // completed: keep list order
+                       // Dated tasks first, earliest due first; undated keep list order.
+                       const int32_t dx = x.due == 0 ? INT32_MAX : x.due;
+                       const int32_t dy = y.due == 0 ? INT32_MAX : y.due;
+                       return dx < dy;
+                     });
+  }
+  return sections;
+}
+
 void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint32_t baseline,
-                         const bool baselineValid) {
+                         const bool baselineValid, const std::vector<std::string>* incomingLists) {
   if (!baselineValid) baseline = 0;
+  if (incomingLists != nullptr) {
+    // The push numbers its lists on its own: translate into the device's table.
+    std::vector<uint8_t> translated;
+    translated.reserve(incomingLists->size());
+    for (const auto& name : *incomingLists) translated.push_back(internTodoList(list, name));
+    for (auto& item : incoming) {
+      item.listIndex =
+          item.listIndex < translated.size() ? translated[item.listIndex] : static_cast<uint8_t>(kNoList);
+    }
+  }
   const auto unseenByCompanion = [baseline](const TodoItem& item) { return item.localRev > baseline; };
 
   std::unordered_map<std::string, size_t> localIndex;
@@ -173,6 +242,20 @@ void applyCompanionTodos(TodoList& list, std::vector<TodoItem>&& incoming, uint3
 
   list.items = std::move(merged);
   enforceTodoLimit(list);
+  // Drop list names nothing points at any more, so the table cannot fill up.
+  std::vector<uint8_t> remap(list.lists.size(), kNoList);
+  std::vector<std::string> kept;
+  kept.reserve(list.lists.size());
+  for (const auto& item : list.items) {
+    if (item.deleted || item.listIndex >= list.lists.size()) continue;
+    if (remap[item.listIndex] != kNoList) continue;
+    remap[item.listIndex] = static_cast<uint8_t>(kept.size());
+    kept.push_back(list.lists[item.listIndex]);
+  }
+  for (auto& item : list.items) {
+    item.listIndex = item.listIndex < remap.size() ? remap[item.listIndex] : static_cast<uint8_t>(kNoList);
+  }
+  list.lists = std::move(kept);
 }
 
 size_t enforceTodoLimit(TodoList& list) {

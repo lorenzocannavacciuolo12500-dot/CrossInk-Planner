@@ -7,9 +7,12 @@
 #include <Memory.h>
 #include <PlannerTodos.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <mutex>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "PlannerFormat.h"
 #include "PlannerStore.h"
@@ -19,6 +22,12 @@
 #include "platform/PlannerPlatform.h"
 
 namespace fui = freeink::ui;
+
+namespace {
+// Lists the user folded away. Kept until the reader restarts: a fold is a
+// glance-level choice, not worth a write to the SD card on every tap.
+std::vector<std::string> collapsedLists;
+}  // namespace
 
 TodoListActivity::TodoListActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
     : PlannerListActivity("PlannerTodo", renderer, mappedInput) {}
@@ -33,8 +42,9 @@ void TodoListActivity::onEnter() {
 void TodoListActivity::onExit() {
   // Nothing stays resident outside the screen (a full list can be ~30 KB).
   list = planner::TodoList{};
-  std::vector<uint16_t>().swap(order);
+  std::vector<Row>().swap(rows);
   std::vector<std::string>().swap(subtitles);
+  std::vector<std::string>().swap(headings);
   PlannerListActivity::onExit();
 }
 
@@ -46,9 +56,37 @@ void TodoListActivity::reload() {
   refreshDerived();
 }
 
+bool TodoListActivity::isCollapsed(const uint8_t listIndex) const {
+  if (listIndex >= list.lists.size()) return false;
+  return std::find(collapsedLists.begin(), collapsedLists.end(), list.lists[listIndex]) != collapsedLists.end();
+}
+
+void TodoListActivity::toggleCollapsed(const uint8_t listIndex) {
+  if (listIndex >= list.lists.size()) return;
+  const std::string& name = list.lists[listIndex];
+  const auto at = std::find(collapsedLists.begin(), collapsedLists.end(), name);
+  if (at != collapsedLists.end()) {
+    collapsedLists.erase(at);
+  } else {
+    collapsedLists.push_back(name);
+  }
+}
+
 void TodoListActivity::refreshDerived() {
-  order = planner::visibleTodoOrder(list);
-  completedCount = order.size() - planner::countOpenTodos(list);
+  rows.clear();
+  size_t visible = 0;
+  for (const auto& section : planner::visibleTodoSections(list)) {
+    visible += section.items.size();
+    if (section.listIndex != planner::kNoList) {
+      if (section.items.empty()) continue;  // an empty list is not worth a row
+      rows.push_back(Row{0, section.listIndex, true});
+      if (isCollapsed(section.listIndex)) continue;
+    }
+    for (const uint16_t item : section.items) {
+      rows.push_back(Row{item, section.listIndex, false});
+    }
+  }
+  completedCount = visible - planner::countOpenTodos(list);
   todayYmd = PlannerFormat::today();
   std::snprintf(deleteCompletedLabel, sizeof(deleteCompletedLabel), tr(STR_PLANNER_DELETE_COMPLETED_FORMAT),
                 static_cast<unsigned>(completedCount));
@@ -71,15 +109,48 @@ int TodoListActivity::itemCount() const { return addRowIndex() + 1 + (completedC
 const char* TodoListActivity::screenTitle() const { return tr(STR_PLANNER_TODO); }
 
 const char* TodoListActivity::confirmHint() const {
-  return selectedIndex < addRowIndex() ? tr(STR_PLANNER_TOGGLE) : tr(STR_SELECT);
+  if (selectedIndex < 0 || selectedIndex >= addRowIndex()) return tr(STR_SELECT);
+  const Row& row = rows[static_cast<size_t>(selectedIndex)];
+  if (!row.heading) return tr(STR_PLANNER_TOGGLE);
+  return isCollapsed(row.listIndex) ? tr(STR_PLANNER_LIST_OPEN) : tr(STR_PLANNER_LIST_CLOSE);
 }
 
 void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
   subtitles.clear();
-  subtitles.reserve(order.size());
+  subtitles.reserve(rows.size());
+  headings.clear();
+  headings.reserve(list.lists.size());
 
-  for (const uint16_t idx : order) {
-    const planner::TodoItem& task = list.items[idx];
+  for (const Row& row : rows) {
+    if (row.heading) {
+      unsigned count = 0;
+      for (const Row& other : rows) {
+        if (!other.heading && other.listIndex == row.listIndex) count++;
+      }
+      if (isCollapsed(row.listIndex)) {
+        count = 0;
+        for (const auto& item : list.items) {
+          if (!item.deleted && item.listIndex == row.listIndex) count++;
+        }
+      }
+      char text[48];
+      std::snprintf(text, sizeof(text), tr(STR_PLANNER_LIST_TASKS_FORMAT), count);
+      std::string subtitle = text;
+      if (isCollapsed(row.listIndex)) {
+        subtitle += " - ";
+        subtitle += tr(STR_PLANNER_LIST_CLOSED);
+      }
+      subtitles.push_back(std::move(subtitle));
+      headings.push_back(list.lists[row.listIndex]);
+
+      fui::ListItem heading;
+      heading.label = headings.back().c_str();
+      heading.subtitle = subtitles.back().c_str();
+      items.push_back(heading);
+      continue;
+    }
+
+    const planner::TodoItem& task = list.items[row.item];
     std::string subtitle;
     if (task.due != 0) {
       char day[32];
@@ -103,7 +174,7 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
 
   fui::ListItem add;
   add.label = tr(STR_PLANNER_ADD_TASK);
-  add.subtitle = order.empty() ? nullptr : tr(STR_PLANNER_HOLD_TO_DELETE);
+  add.subtitle = rows.empty() ? nullptr : tr(STR_PLANNER_HOLD_TO_DELETE);
   items.push_back(add);
 
   if (completedCount > 0) {
@@ -115,7 +186,16 @@ void TodoListActivity::fillItems(std::vector<fui::ListItem>& items) {
 
 void TodoListActivity::activate(const int index, const bool longPress) {
   if (index >= 0 && index < addRowIndex()) {
-    const size_t itemIndex = order[static_cast<size_t>(index)];
+    const Row& row = rows[static_cast<size_t>(index)];
+    if (row.heading) {
+      if (longPress) return;
+      toggleCollapsed(row.listIndex);
+      refreshDerived();
+      clampSelection();
+      requestUpdate();
+      return;
+    }
+    const size_t itemIndex = row.item;
     if (longPress) {
       confirmDeleteTask(itemIndex);
       return;
@@ -152,8 +232,8 @@ void TodoListActivity::openAddTask() {
       persist();
       // Select the new task (open, undated: it sorts after dated open tasks).
       const size_t newIndex = list.items.size() - 1;
-      for (size_t i = 0; i < order.size(); i++) {
-        if (order[i] == newIndex) selectedIndex = static_cast<int>(i);
+      for (size_t i = 0; i < rows.size(); i++) {
+        if (!rows[i].heading && rows[i].item == newIndex) selectedIndex = static_cast<int>(i);
       }
       clampSelection();
     }
