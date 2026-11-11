@@ -527,8 +527,18 @@ void SleepActivity::onEnter() {
   // the book cover like the Cover mode. The "on timeout" variant still keeps
   // the exact last screen outside the planner pages.
   const bool lastScreenMode = SETTINGS.sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::QUICK_RESUME;
-  const bool plannerFrame = renderQuickResume && PlannerListActivity::takeSleepFrame();
-  const bool keepFrame = plannerFrame || (renderQuickResume && !lastScreenMode);
+
+  // CrossInk-Planner: a sleep nobody asked for (the inactivity timeout) shows
+  // the cover of the book being read, whatever screen was open. Falling asleep
+  // on the To-Do List or the Calendar therefore does not leave that page on
+  // the panel; pressing Power still honours the chosen sleep screen.
+  const std::string& openBookPath = currentBookPath.empty() ? APP_STATE.openEpubPath : currentBookPath;
+  const bool coverOnTimeout = fromTimeout && !openBookPath.empty();
+
+  // Always consume the flag, or a frame prepared now would be reused later.
+  const bool plannerFrameReady = PlannerListActivity::takeSleepFrame();
+  const bool plannerFrame = renderQuickResume && !coverOnTimeout && plannerFrameReady;
+  const bool keepFrame = plannerFrame || (renderQuickResume && !lastScreenMode && !coverOnTimeout);
 
   // Sleep screens draw directly, outside ActivityManager's normal render path.
   // A retained screen keeps its Night Mode output; generated sleep screens
@@ -543,13 +553,14 @@ void SleepActivity::onEnter() {
     return renderLastScreenSleepScreen();
   }
 
-  const auto sleepScreen =
-      renderQuickResume ? static_cast<uint8_t>(CrossPointSettings::SLEEP_SCREEN_MODE::COVER) : SETTINGS.sleepScreen;
+  const auto sleepScreen = (renderQuickResume || coverOnTimeout)
+                               ? static_cast<uint8_t>(CrossPointSettings::SLEEP_SCREEN_MODE::COVER)
+                               : SETTINGS.sleepScreen;
   const bool sleepScreenUsesRecentBooks = sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::READING_STATS_SLEEP ||
                                           sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::MINIMAL_SLEEP ||
                                           sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::MINIMAL_STATS_SLEEP ||
                                           sleepScreen == CrossPointSettings::SLEEP_SCREEN_MODE::DASHBOARD_SLEEP;
-  const std::string& recentBookPath = currentBookPath.empty() ? APP_STATE.openEpubPath : currentBookPath;
+  const std::string& recentBookPath = openBookPath;
   if (sleepScreenUsesRecentBooks && !recentBookPath.empty()) {
     RECENT_BOOKS.ensureLoaded();
   }

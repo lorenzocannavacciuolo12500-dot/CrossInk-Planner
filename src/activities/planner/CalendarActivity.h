@@ -13,8 +13,9 @@
  * snapshot the companion app pushed (calendar.json). Laid out like the
  * companion app: a heading per day ("Martedì 17 novembre - 1 evento"), then
  * one row per event with the title and "time - place - calendar" below it.
- * Multi-day events appear once per day they cover. The Next Page side button (right edge on the X3)
- * goes back to Home.
+ * Multi-day events appear once per day they cover. Confirm on a row opens the
+ * event on its own screen, where a long title or place is not cut short.
+ * The Next Page side button (right edge on the X3) goes back to Home.
  */
 class CalendarActivity final : public PlannerListActivity {
  public:
@@ -26,9 +27,9 @@ class CalendarActivity final : public PlannerListActivity {
  protected:
   int itemCount() const override;
   void fillItems(std::vector<freeink::ui::ListItem>& items) override;
-  void activate(int, bool) override {}
+  void activate(int index, bool longPress) override;
   const char* screenTitle() const override;
-  const char* confirmHint() const override { return ""; }
+  const char* confirmHint() const override;
   const char* emptyText() const override;
   void onSideButton(bool next) override;
   void reloadData() override { reload(); }

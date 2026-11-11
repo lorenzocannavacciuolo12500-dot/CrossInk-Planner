@@ -10,6 +10,8 @@ buttons move the selection. The dots take the centre of the status bar on these
 three pages; an item configured there (e.g. the clock) moves to the left slot, or to
 the right one if the left is used.
 
+Falling asleep on the inactivity timeout shows the cover of the book being read,
+whatever page was open; pressing Power keeps the chosen sleep screen.
 Going to sleep on the To-Do List or Calendar reopens that page on wake-up (Back still
 returns Home; holding Back while waking goes straight Home). The side buttons cannot
 wake the device: on the X3/X4 they are read through an ADC ladder that is not a
@@ -23,7 +25,9 @@ then shows the date, today's events and the open tasks (as of the last sync).
   deleted (on the device or in the companion app). Tasks can be checked off and
   added on the device; the companion app can add, edit and delete them.
 - **Calendar** — a read-only agenda of the next days, copied by the companion app
-  from the user's calendars (private iCal addresses: Google Calendar, Outlook, iCloud).
+  from the user's calendars (the phone's own calendars and private iCal addresses:
+  Google Calendar, Outlook, iCloud). Confirm on an event opens it on its own screen,
+  where a long title or place is not cut to one line; any button closes it.
 
 Nothing on the device talks to calendar services. The companion app
 ([CrossInk-fork-companion](https://github.com/lorenzocannavacciuolo12500-dot/CrossInk-fork-companion))

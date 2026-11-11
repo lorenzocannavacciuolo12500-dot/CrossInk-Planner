@@ -13,8 +13,15 @@
 - "Agenda" sleep screen: today's date, today's events and the open tasks.
 - The Calendar page is laid out like the companion app: a heading per day with its event count, then each event's title with time, place and calendar below.
 
+- Calendar: Confirm on an event opens it on its own screen, where a long title or place is shown in full instead of
+  being cut to one line.
+- Going to sleep on the inactivity timeout shows the cover of the book being read, whatever screen was open, so the
+  To-Do List or Calendar is not left on the panel. Pressing Power still uses the chosen sleep screen.
+
 ### Fixed
 
+- To-Do List: checking a task no longer drags the selection down with it. The task still moves to the completed ones,
+  but the cursor stays on the row it was on, so a list can be ticked off from the top down.
 - Opening the To-Do List or Calendar from Home could crash the reader (`esp_netif_create_default_wifi_sta` assert / `abort()`): Home stayed in memory under the page, leaving too little heap for Wi-Fi. The pages now replace Home, and background Wi-Fi is not started when free memory is too low.
 
 ### Changed

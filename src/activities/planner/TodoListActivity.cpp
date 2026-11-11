@@ -122,14 +122,9 @@ void TodoListActivity::activate(const int index, const bool longPress) {
     }
     const bool done = !list.items[itemIndex].done;
     if (planner::setLocalTodoDone(list, itemIndex, done, PlannerStore::nowForEdits())) {
-      // Keep the cursor on the same task even though it moves within the list.
+      // The checked task drops to the completed ones, but the cursor stays on
+      // the row it was on, so a list can be ticked off from the top down.
       persist();
-      for (size_t i = 0; i < order.size(); i++) {
-        if (order[i] == itemIndex) {
-          selectedIndex = static_cast<int>(i);
-          break;
-        }
-      }
       clampSelection();
     }
     return;

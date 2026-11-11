@@ -9,6 +9,9 @@
 #include <cstdio>
 #include <mutex>
 
+#include <Memory.h>
+
+#include "CalendarEventActivity.h"
 #include "PlannerFormat.h"
 #include "PlannerStore.h"
 
@@ -139,6 +142,21 @@ void CalendarActivity::fillItems(std::vector<fui::ListItem>& items) {
   footer.subtitle = agenda.empty() ? updatedLabel : nullptr;
   footer.enabled = false;
   items.push_back(footer);
+}
+
+const char* CalendarActivity::confirmHint() const { return agenda.empty() ? "" : tr(STR_PLANNER_EVENT_READ); }
+
+void CalendarActivity::activate(const int index, const bool longPress) {
+  if (longPress || index < 0 || index >= static_cast<int>(agenda.size())) return;
+  const Row& row = agenda[static_cast<size_t>(index)];
+  if (row.event >= calendar.events.size()) return;
+  auto screen =
+      makeUniqueNoThrow<CalendarEventActivity>(renderer, mappedInput, calendar.events[row.event], row.day, todayYmd);
+  if (!screen) {
+    LOG_ERR("PLN", "no memory for the event screen");
+    return;
+  }
+  startActivityForResult(std::move(screen), [](const ActivityResult&) {});
 }
 
 void CalendarActivity::onSideButton(const bool next) {
